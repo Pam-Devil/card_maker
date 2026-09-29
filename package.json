@@ -1,0 +1,14 @@
+{
+  "name": "card-generator",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "JSON -> carta (HTML/CSS) -> PNG pronto para impressão",
+  "scripts": {
+    "build": "node build.mjs cards/exemplo.json",
+    "build:600": "node build.mjs cards/exemplo.json --dpi 600"
+  },
+  "dependencies": {
+    "playwright": "^1.56.0",
+    "sharp": "^0.34.5"
+  }
+}

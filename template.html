@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        
+        :root{
+            --element-color: rgb(156, 22, 33);
+            --element-darker-color: rgba(255, 255, 255, 0.568);
+
+            color: white;
+            -webkit-text-stroke: 0.04mm black;
+
+            &:has([data-element="pyro"]){
+                --element-color: rgb(156, 22, 33);
+                --element-darker-color: rgba(69, 14, 18, 0.66);
+                --element-icon: url("./assets/icons/pyro.svg");
+            }
+
+            &:has([data-element="hydro"]){
+                --element-color: rgb(22, 76, 156);
+                --element-darker-color: rgba(14, 93, 184, 0.63);
+                --element-icon: url("./assets/icons/hydro.svg");
+            }
+            &:has([data-element="electro"]){
+                --element-color: rgb(101, 42, 211);
+                --element-darker-color: rgba(57, 35, 99, 0.555);
+                --element-icon: url("./assets/icons/electro.svg");
+            }
+            &:has([data-element="anemo"]){
+                --element-color: rgb(31, 163, 130);
+                --element-darker-color: rgba(17, 121, 112, 0.63);
+                --element-icon: url("./assets/icons/anemo.svg");
+            }
+            &:has([data-element="cryo"]){
+                --element-color: rgb(150, 212, 231);
+                --element-darker-color: rgba(81, 131, 146, 0.411);
+                --element-icon: url("./assets/icons/cryo.svg");
+            }
+            &:has([data-element="dendro"]){
+                --element-color: rgb(87, 172, 48);
+                --element-darker-color: rgba(46, 100, 42, 0.479);
+                --element-icon: url("./assets/icons/dendro.svg");
+            }
+            &:has([data-element="geo"]){
+                --element-color: rgb(194, 147, 46);
+                --element-darker-color: rgba(83, 61, 21, 0.63);
+                --element-icon: url("./assets/icons/geo.svg");
+            }
+        }
+        
+        html, body {
+            box-sizing: border-box;
+            width: 100%;
+            height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+        body {
+            padding: 1mm;
+        }
+        anchor {
+            pointer-events: none;
+            position: absolute;
+        }
+
+        anchor {
+            width: 5px;
+            height: 5px;
+        }
+
+        .top-left {
+            top: 0;
+            left: 0;
+        }
+
+        .top {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .top-right {
+            top: 0;
+            right: 0;
+        }
+
+        .left {
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+
+        .center {
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .right {
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+        }
+
+        .bottom-left {
+            bottom: 0;
+            left: 0;
+        }
+
+        .bottom {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .bottom-right {
+            bottom: 0;
+            right: 0;
+        }
+        .radius {
+            border-radius: 6mm;
+        } 
+
+    .golden-border {
+        position: absolute;
+        z-index: 2;
+
+        background:
+            linear-gradient(var(--element-color), var(--element-color)) padding-box,
+            linear-gradient(
+                135deg,
+                #fff4b0 0%,
+                #d4af37 18%,
+                #78500b 36%,
+                #ffe78a 52%,
+                #b8860b 68%,
+                #fff0a0 85%,
+                #a87915 100%
+            ) border-box;
+
+        border: 0.5mm solid transparent;
+    }
+
+    card-name {
+        position: absolute;
+        z-index: 3;
+        left: 50%;
+        top: 0.5mm;
+        transform: translateX(-46%);
+
+        box-sizing: border-box;
+        width: 28mm;
+        height: 5mm;
+        padding: 0 1.5mm;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        overflow: hidden;
+
+        font-size: 4mm;
+        font-weight: bold;
+        white-space: nowrap;
+
+        background-color: var(--element-darker-color);
+        border: 0.5mm solid;
+        border-image: linear-gradient(
+            135deg,
+            #fff4b0,
+            #d4af37 20%,
+            #78500b 40%,
+            #ffe78a 55%,
+            #b8860b 70%,
+            #fff0a0 85%,
+            #a87915
+        ) 1;
+
+        &::after{
+            content: var(--card-name);
+        }
+    }
+
+    card-data {
+        --card-effect: attr(data-effect);
+        --card-cost: attr(data-cost);
+        --card-atk: attr(data-atk);
+        --card-hp: attr(data-hp);
+        --card-name: attr(data-name);
+    }
+    .card-bleed {
+        width: 65mm;
+        height: 92mm;
+        position: relative;
+
+        background-image: var(--card-art);
+        background-size: cover;
+        background-position: 50% 30%;
+
+        & > card {
+            position: absolute;
+            width: 59mm;
+            height: 86mm;
+
+            top: 3mm;
+            left: 3mm;
+
+            outline: 1px solid rgba(255, 0, 0, 0.116);
+            z-index: 2;
+
+            & bordinha {
+                position: absolute;
+                width: 56mm;
+                height: 83mm;
+
+                top: 1.5mm;
+                left: 1.6mm;
+
+                z-index: 2;
+
+                &::before {
+                    content: "";
+
+                    position: absolute;
+                    inset: 0;
+                    z-index: 1;
+
+                    border-radius: inherit;
+
+                    background: linear-gradient(
+                        180deg,
+                        #fff4b0 0%,
+                        #ead78a 5%,
+                        #d4af37 10%,
+                        #a98125 15%,
+                        #78500b 20%,
+                        #a06e18 25%,
+                        #c89332 30%,
+                        #e3bd5c 35%,
+                        #ffe88a 40%,
+                        #f7db7600 45%,
+                        #fff1a000 50%,
+
+                        rgba(255, 241, 160, 0) 55%,
+                        rgba(255, 232, 138, 0) 60%,
+                        rgba(184, 135, 11, 0.103) 65%,
+                        rgba(184, 135, 11, 0) 70%,
+                        rgba(168, 121, 21, 0) 75%,
+                        rgba(168, 121, 21, 0) 80%,
+                        rgba(255, 241, 160, 0) 85%,
+                        rgba(168, 121, 21, 0) 90%,
+                        rgba(168, 121, 21, 0) 95%,
+                        transparent 100%
+                    );
+
+                    padding: 0.5mm;
+
+                    mask:
+                        linear-gradient(#fff 0 0) content-box,
+                        linear-gradient(#fff 0 0);
+
+                    mask-composite: exclude;
+
+                    pointer-events: none;
+                }
+            }
+
+            & > safe-area {
+                position: absolute;
+                width: 53mm;
+                height: 80mm;
+
+                top: 3mm;
+                left: 3mm;
+
+                z-index: 2;
+
+                &::before{
+                    content: "";
+
+                    position: absolute;
+                    inset: 0;
+                    z-index: 1;
+
+                    border-radius: inherit;
+
+                    background: linear-gradient(
+                        180deg,
+                        #fff4b0 0%,
+                        #ead78a 5%,
+                        #d4af37 10%,
+                        #a98125 15%,
+                        #78500b 20%,
+                        #a06e18 25%,
+                        #c89332 30%,
+                        #e3bd5c 35%,
+                        #ffe88a 40%,
+                        #f7db7600 45%,
+                        #fff1a000 50%,
+
+                        rgba(255, 241, 160, 0) 55%,
+                        rgba(255, 232, 138, 0) 60%,
+                        rgba(184, 135, 11, 0.103) 65%,
+                        rgba(184, 135, 11, 0) 70%,
+                        rgba(168, 121, 21, 0) 75%,
+                        rgba(168, 121, 21, 0) 80%,
+                        rgba(255, 241, 160, 0) 85%,
+                        rgba(168, 121, 21, 0) 90%,
+                        rgba(168, 121, 21, 0) 95%,
+                        transparent 100%
+                    );
+
+                    padding: 0.5mm;
+
+                    mask:
+                        linear-gradient(#fff 0 0) content-box,
+                        linear-gradient(#fff 0 0);
+
+                    mask-composite: exclude;
+
+                    pointer-events: none;
+                }
+
+                & cost {
+                    position: absolute;
+                    z-index: 3;
+                    width: 11mm;
+                    height: 11mm;
+                    background-color: var(--element-color);
+
+                    border-radius: 1000mm;
+                    position: absolute;
+                    z-index: 3;
+                    width: 11mm;
+                    height: 11mm;
+                    border-radius: 50%;
+
+                    &::before{
+                        content: "";
+                        position: absolute;
+                        inset: 0;
+                        border-radius: inherit;
+                                        
+                        /* sombra universal */
+                        background: radial-gradient(
+                            ellipse at -40% 70%,
+                            rgba(0, 0, 0, 0.637),
+                            transparent 65%
+                        ),
+                        radial-gradient(
+                                ellipse at 70% -25%,
+                                white 0%,
+                                rgba(255, 255, 255, 0.541) 8%,
+                                transparent 45%
+                            ),
+                        var(--element-color);
+                                        
+                        background-blend-mode: multiply, screen, normal;
+                        pointer-events: none;
+                    }
+
+                    &::after {
+                        display: flex;
+                        width: 115%;
+                        position: absolute;
+                        top: -0.8mm;
+                        
+                        left: -0.8mm;
+                        height: 115%;
+                        justify-content: center;
+                        align-items: center;
+                        font-weight:bold;
+                        content: var(--card-cost);
+                        
+                        background: linear-gradient(
+                            192deg,
+                            #ffffff 0%,
+                            #ffffff 28%,
+                            #ff4df9 45%,
+                            #6c9cff 55%,
+                            #1ea5bc 60%,
+                            #471a72 73%,
+                            #471a72 100%
+                        );
+                        background-clip: text;
+                        -webkit-background-clip: text;
+
+                        color: transparent;
+                        -webkit-text-fill-color: transparent;
+
+                        font-size: 9mm;
+                        -webkit-text-stroke: 0.02mm white;
+
+                        filter: drop-shadow(0 0.3mm 0.3mm rgba(0, 0, 0, 0.65));
+                    }
+                }
+
+                & attribute {
+                    position: absolute;
+                    z-index: 3;
+                    width: 9mm;
+                    height: 9mm;
+                    right: 0;
+                    background-color: var(--element-color);
+
+                    border-radius: 1000mm;
+
+                    &::after{
+                        content: "";
+                        width: 100%;
+                        height: 100%;
+                        position: absolute;
+                        display: block;
+                        top: 0.3mm;
+                        left: 0.8mm;
+                        width: 8mm;
+                        height: 8mm;
+
+                        background: white;
+
+                        mask: var(--element-icon) center / contain no-repeat;
+                        -webkit-mask: var(--element-icon) center / contain no-repeat;
+                    }
+
+                    &::before{
+                        content: "";
+                        position: absolute;
+                        inset: 0;
+                        border-radius: inherit;
+                                        
+                        /* sombra universal */
+                        background: radial-gradient(
+                            ellipse at -40% 70%,
+                            rgba(0, 0, 0, 0.637),
+                            transparent 65%
+                        ),
+                        radial-gradient(
+                                ellipse at 70% -25%,
+                                white 0%,
+                                rgba(255, 255, 255, 0.541) 8%,
+                                transparent 45%
+                            ),
+                        var(--element-color);
+                                        
+                        background-blend-mode: multiply, screen, normal;
+                        pointer-events: none;
+                    }
+                }
+
+                & status {
+                    width: 53mm;
+                    height: 10mm;
+                    left: 50%;
+                    top: 50%;
+                    top: 5.7mm;
+                    transform: translate(-50%, -50%);
+                    position: absolute;
+                    z-index: 3;
+                    background-color: rgba(255, 248, 220, 0);
+                
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    
+                    gap: 2mm;
+                    --attribute-box-size: 30mm;
+                    --attribute-box-height: 8mm;
+                    
+                    ATK {
+                        height: var(--attribute-box-height);
+                        width: var(--attribute-box-size);
+
+                        background-color: var(--element-darker-color);
+                        display: flex;
+                        font-size: x-large ;
+                        justify-content:center;
+                        align-items: center;
+
+                        border: 0.5mm solid;
+                        border-image: linear-gradient(
+                            135deg,
+                            #fff4b0,
+                            #d4af37 20%,
+                            #78500b 40%,
+                            #ffe78a 55%,
+                            #b8860b 70%,
+                            #fff0a0 85%,
+                            #a87915
+                        ) 1;
+
+                        &::before{
+                            content: var(--card-atk);
+                        }
+                        &::after{
+                            content: "";
+
+                            width: 8mm;
+                            height: 8mm;
+
+                            background: white;
+
+                            mask: url("./assets/icons/espada.svg") center / contain no-repeat;
+                            -webkit-mask: url("./assets/icons/espada.svg") center / contain no-repeat;
+                        }
+                    }
+
+                    HP {
+                        height: var(--attribute-box-height);
+                        width: var(--attribute-box-size);
+
+                        background-color: var(--element-darker-color);
+
+                        display: flex;
+                        font-size: x-large ;
+                        justify-content:center;
+                        align-items: center;
+
+                        border: 0.5mm solid;
+                        border-image: linear-gradient(
+                            135deg,
+                            #fff4b0,
+                            #d4af37 20%,
+                            #78500b 40%,
+                            #ffe78a 55%,
+                            #b8860b 70%,
+                            #fff0a0 85%,
+                            #a87915
+                        ) 1;
+
+                        &::before{
+                            content: var(--card-hp);
+                        }
+
+                        &::after{
+                            content: "";
+
+                            width: 7mm;
+                            height: 7mm;
+
+                            background: white;
+
+                            mask: url("./assets/icons/coracao.svg") center / contain no-repeat;
+                            -webkit-mask: url("./assets/icons/coracao.svg") center / contain no-repeat;
+                        }
+                    }
+                }
+                & effect {
+                    width: 53mm;
+                    position: absolute;
+                    bottom: -1.3mm;
+                    left: 50%;
+                    transform: translateX(-50%);
+
+                    z-index: 3;
+                    height: 30mm;
+                    padding: 1mm;
+
+                    effect-text {
+                        display: block;
+                        width: 52mm;
+                        height: 29mm;
+
+                        overflow: hidden;
+
+                        border-radius: 0 0 6mm 6mm;
+                        
+                        position: absolute;
+                        z-index: 3;
+                        
+
+                        &::before {
+                            content: var(--card-effect); 
+                            
+                            color: white;
+                            -webkit-text-stroke: 0.04mm black;
+                            
+                            display: block;
+                            padding: 1.5mm;
+                            font-size: 2.8mm;
+
+                            border-radius: 0 0 6mm 6mm;
+                            padding-bottom: 5mm;
+                        }
+                    }
+
+                    & > effect-box {
+                       display: block;
+
+                       position: relative;
+
+                       width: 53mm;
+                       height: 30mm;
+
+                       border-radius: 0 0 6mm 6mm;
+
+                       background: var(--element-darker-color);
+
+                       & > span {
+                           width: 100%;
+                           height: 100%;
+                       }
+                       /* &::after {
+                           content: "";
+                           position: absolute;
+                           width: 100%;
+                           height: 100%;
+                           inset: 2mm;
+                           border-radius: inherit;
+                           overflow: hidden;
+                       } */
+
+                       &::before {
+                           content: "";
+
+                           position: absolute;
+                           inset: 0;
+
+                           border-radius: inherit;
+
+                           background: linear-gradient(
+                               135deg,
+                               #fff4b0 0%,
+                               #d4af37 20%,
+                               #78500b 40%,
+                               #ffe78a 55%,
+                               #b8860b 70%,
+                               #fff0a0 85%,
+                               #a87915 100%
+                           );
+
+                           padding: 0.5mm;
+
+                           mask:
+                               linear-gradient(#fff 0 0) content-box,
+                               linear-gradient(#fff 0 0);
+
+                           mask-composite: exclude;
+
+                           pointer-events: none;
+                       }
+}
+                }
+            }
+        }
+}
+    </style>
+</head>
+<body>
+    <card-data
+        data-name="Lumine"
+        data-cost="6" 
+        data-element="anemo" 
+        data-atk="800" 
+        data-hp="2000" 
+        data-effect="(1-En) Se o oponente declara ataque ou ativa o efeito de uma unidade: Descarte esta carta da sua mão; Aplique 1 token electro a uma unidade no campo. (Único, Escolha).
+        "
+        style="--card-art: url('https://c.l3n.co/wgh5Qk.jpg');"
+    >
+        <div class="card-bleed radius">
+        <card class="trim radius">
+            <bordinha class="external radius"></bordinha>
+            <safe-area class="radius">
+                <anchor class="top-left">
+                    <cost class="golden-border"></cost>
+                </anchor>
+                <anchor class="top">
+                    <card-name><span></span></card-name>
+                </anchor>
+                <anchor class="top-right">
+                    <attribute class="golden-border"></attribute>
+                </anchor>
+                <anchor class="left"></anchor>
+                <anchor class="center">
+                    <status>
+                        <ATK class=""></ATK>
+                        <HP class=""></HP>
+                    </status>
+                </anchor>
+                <anchor class="right"></anchor>
+                <anchor class="bottom-left"></anchor>
+                <anchor class="bottom">
+                    <effect>
+                        <effect-text>
+                        </effect-text>
+                        <effect-box></effect-box>
+                    </effect>
+                </anchor>
+                <anchor class="bottom-right"></anchor>
+                
+            </safe-area>
+        </card>
+    </div>
+    </card-data>
+</body>
+</html>

@@ -1,0 +1,33 @@
+[
+  {
+    "id": "001-geo-hannelore",
+    "name": "Hannelore",
+    "element": "geo",
+    "cost": 2,
+    "atk": 400,
+    "hp": 900,
+    "art": "https://c.l3n.co/wghayH.jpg",
+    "artPosition": "50% 30%",
+    "effect": "(1-En) Se esta carta retorna ao campo do cemitério: Aplique um token geo a uma unidade no campo (Escolha)."
+  },
+  {
+    "id": "002-electro-clarissa",
+    "name": "Clarissa",
+    "element": "electro",
+    "cost": 4,
+    "atk": 900,
+    "hp": 1200,
+    "art": "https://a.l3n.co/wr2AUK.jpg",
+    "effect": "(1-En) Se o oponente declara um ataque ou ativa um efeito de unidade: Descarte esta carta da sua mão; Aplique um token electro a uma unidade no campo (Único, Escolha)."
+  },
+  {
+    "id": "003-pyro-egglantine",
+    "name": "Egglantine",
+    "element": "pyro",
+    "cost": 6,
+    "atk": 1200,
+    "hp": 1000,
+    "art": "https://a.l3n.co/wtEl89.jpg",
+    "effect": "(2-En) Se esta carta realiza uma reação de vaporizar: Aumente o ataque de uma outra unidade pyro (exceto ela mesma) no campo em 300 (Escolha). \n (1-En) Se esta carta retorna ao campo do cemitério: Aplique um token pyro a uma unidade no campo."
+  }
+]

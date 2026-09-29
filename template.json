@@ -1,0 +1,51 @@
+{
+  "card": { "width": 1292, "height": 1920, "corner_radius": 115, "back": "assets/card_back.png" },
+
+  "fonts": {
+    "_comment": "Coloque suas fontes em assets/fonts/ e liste aqui (a primeira que existir é usada).",
+    "name":   ["assets/fonts/name.ttf",   "/usr/share/fonts/truetype/dejavu/DejaVuSerif-BoldItalic.ttf"],
+    "number": ["assets/fonts/number.ttf", "/usr/share/fonts/truetype/dejavu/DejaVuSerif-Bold.ttf"],
+    "body":   ["assets/fonts/body.ttf",   "/usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf"]
+  },
+
+  "art": { "default_scale": 1.0, "default_focus": [0.5, 0.5] },
+
+  "foil": { "enabled": true, "strength": 0.2 },
+
+  "frame": {
+    "color": "#E8D6A6", "width": 5,
+    "lines": [
+      [205, 49, 1178, 49], [205, 78, 1178, 78],
+      [47, 280, 47, 1075], [65, 280, 65, 1075],
+      [1178, 0, 1178, 1075], [1250, 215, 1250, 1075]
+    ]
+  },
+
+  "cost_badge":    { "center": [157, 160],  "radius": 120, "number_size": 215 },
+  "element_badge": { "center": [1165, 137], "radius": 83,  "icon_size": 105 },
+
+  "name": { "pos": [30, 300], "max_width": 760, "size": 150 },
+
+  "stats": {
+    "number_size": 130, "icon_size": 110, "gap": 8,
+    "atk": { "box": [95, 1082, 626, 1283],  "border": "#B58A4A", "icon": "crown" },
+    "hp":  { "box": [663, 1082, 1193, 1283], "border": "#F2C79A", "icon": "heart" },
+    "border_width": 7, "panel_alpha": 165
+  },
+
+  "text_box": {
+    "box": [105, 1298, 1193, 1855], "border": "#EBC08E", "border_width": 8, "panel_alpha": 178,
+    "padding": [28, 22], "max_size": 44, "min_size": 22, "line_height": 1.12,
+    "paragraph_gap": 34, "color": "#F8EEE8", "separator": "#4A0F12"
+  },
+
+  "elements": {
+    "pyro":    { "light": "#B33434", "dark": "#4A0A0C", "panel": "#5A1418", "icon": "flame" },
+    "hydro":   { "light": "#3A78C8", "dark": "#0C2A55", "panel": "#12305C", "icon": "drop" },
+    "cryo":    { "light": "#6CC4DC", "dark": "#0E4A5E", "panel": "#155264", "icon": "snow" },
+    "electro": { "light": "#9058C8", "dark": "#301050", "panel": "#3C1A5E", "icon": "bolt" },
+    "anemo":   { "light": "#3CC0A0", "dark": "#0A4438", "panel": "#125244", "icon": "wind" },
+    "geo":     { "light": "#D0A030", "dark": "#503A08", "panel": "#5E4610", "icon": "diamond" },
+    "dendro":  { "light": "#6CB43C", "dark": "#1C4A0A", "panel": "#265A12", "icon": "leaf" }
+  }
+}
