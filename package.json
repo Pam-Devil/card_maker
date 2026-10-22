@@ -4,11 +4,16 @@
   "type": "module",
   "description": "JSON -> carta (HTML/CSS) -> PNG pronto para impressão",
   "scripts": {
-    "build": "node build.mjs cards/exemplo.json",
-    "build:600": "node build.mjs cards/exemplo.json --dpi 600"
+    "build": "node build.mjs cards/Fluffusion.json",
+    "build:600": "node build.mjs cards/Fluffusion.json --dpi 600",
+    "test": "playwright test"
   },
   "dependencies": {
     "playwright": "^1.56.0",
     "sharp": "^0.34.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5"
   }
 }

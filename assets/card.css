@@ -1,0 +1,270 @@
+/* Medidas físicas compartilhadas com src/export.mjs: corte 63 × 88 mm, sangria 3 mm. */
+:root {
+  /* Contornos dos textos: espessura e cor. Edite todos aqui. */
+  --stroke-text: 0.3mm black;
+  --stroke-effect: 0.04mm black;
+  --stroke-archetype: 0.2mm white;
+  --stroke-cost: 0.1mm white;
+  --effect-background-opacity: 70%;
+
+  --trim-width: 63mm;
+  --trim-height: 88mm;
+  --bleed: 3mm;
+  --radius: 6mm;
+  --gold: linear-gradient(135deg, #fff4b0, #d4af37 20%, #78500b 40%, #ffe78a 55%, #b8860b 70%, #fff0a0 85%, #a87915);
+  --frame-gold: linear-gradient(180deg, #fff4b0, #ead78a 5%, #d4af37 10%, #a98125 15%, #78500b 20%, #a06e18 25%, #c89332 30%, #e3bd5c 35%, #ffe88a 40%, transparent 55%);
+}
+body { margin: 0; }
+card-data {
+  display: block;
+  color: white;
+  font-family: "Times New Roman", serif;
+  -webkit-text-stroke: var(--stroke-text);
+  paint-order: stroke fill;
+}
+            card-data[data-element="pyro"] {
+                --element-color: rgb(156, 22, 33);
+                --element-darker-color: rgba(69, 14, 18, 0.842);
+                --element-icon: url("./icons/pyro.svg");
+            }
+            card-data[data-element="abysso"] {
+                --element-color: rgb(61, 61, 61);
+                --element-darker-color: rgba(31, 31, 31, 0.842);
+                --element-icon: url("./icons/abysso.svg");
+            }
+
+            card-data[data-element="caelo"] {
+                --element-color: rgb(250, 214, 138);
+                --element-darker-color: rgba(104, 93, 66, 0.842);
+                --element-icon: url("./icons/caelo.svg");
+            }
+
+            card-data[data-element="hydro"] {
+                --element-color: rgb(22, 76, 156);
+                --element-darker-color: rgba(26, 42, 99, 0.842);
+                --element-icon: url("./icons/hydro.svg");
+            }
+
+            card-data[data-element="electro"] {
+                --element-color: rgb(101, 42, 211);
+                --element-darker-color: rgba(57, 35, 99, 0.842);
+                --element-icon: url("./icons/electro.svg");
+            }
+
+            card-data[data-element="anemo"] {
+                --element-color: rgb(31, 163, 130);
+                --element-darker-color: rgba(24, 95, 89, 0.842);
+                --element-icon: url("./icons/anemo.svg");
+            }
+
+            card-data[data-element="cryo"] {
+                --element-color: rgb(150, 212, 231);
+                --element-darker-color: rgba(41, 82, 95, 0.842);
+                --element-icon: url("./icons/cryo.svg");
+            }
+
+            card-data[data-element="dendro"] {
+                --element-color: rgb(87, 172, 48);
+                --element-darker-color: rgba(32, 59, 30, 0.842);
+                --element-icon: url("./icons/dendro.svg");
+            }
+
+            card-data[data-element="geo"] {
+                --element-color: rgb(194, 147, 46);
+                --element-darker-color: rgba(107, 79, 30, 0.842);
+                --element-icon: url("./icons/geo.svg");
+            }
+
+.card-bleed {
+  position: relative;
+  width: calc(var(--trim-width) + 2 * var(--bleed));
+  height: calc(var(--trim-height) + 2 * var(--bleed));
+  background-image: var(--card-art);
+  background-size: cover;
+  background-position: var(--art-position, 50% 30%);
+}
+carta {
+  position: absolute;
+  top: var(--bleed);
+  left: var(--bleed);
+  width: var(--trim-width);
+  height: var(--trim-height);
+  border-radius: var(--radius);
+}
+card-data[data-guides] carta { outline: 0.8px solid rgba(0, 0, 0, 0.6); }
+bordinha, safe-area { position: absolute; border-radius: var(--radius); }
+bordinha { inset: 1.5mm; }
+safe-area { inset: 3mm; }
+bordinha::before, safe-area::before, effect-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--frame-gold);
+  padding: 0.5mm;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+anchor { position: absolute; width: 0; height: 0; }
+.top-left { top: 0; left: 0; }
+.top { top: 0; left: 50%; }
+.top-right { top: 0; right: 0; }
+.bottom { bottom: 0; left: 50%; }
+.golden-border {
+  box-sizing: border-box;
+  border: 0.5mm solid transparent;
+  background: linear-gradient(var(--element-color), var(--element-color)) padding-box, var(--gold) border-box;
+}
+card-name, card-archetype {
+  position: absolute;
+  left: 0;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  width: 30mm;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-weight: bold;
+  white-space: nowrap;
+}
+card-name {
+  top: 0.5mm;
+  height: 5mm;
+  padding: 0 1.5mm;
+  overflow: hidden;
+  background: var(--element-darker-color);
+  border: 0.5mm solid;
+  border-image: var(--gold) 1;
+}
+card-name span { display: block; flex-shrink: 0; font-size: 4mm; }
+card-archetype {
+  top: 5.5mm;
+  height: 3mm;
+  padding: 0 1.5mm;
+  background: rgba(255, 255, 255, 0.445);
+  border-radius: 0 0 3mm 3mm;
+  font-size: 2.3mm;
+  color: black;
+  -webkit-text-stroke: var(--stroke-archetype);
+}
+card-archetype::after { content: var(--card-archetype); }
+cost, attribute {
+  position: absolute;
+  top: 0;
+  border-radius: 50%;
+}
+cost { left: 0; width: 12mm; height: 12mm; }
+attribute { right: 0; width: 10mm; height: 10mm; }
+cost::before, attribute::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(ellipse at -40% 70%, rgba(0,0,0,0.637), transparent 65%),
+    radial-gradient(ellipse at 70% -25%, white, rgba(255,255,255,0.541) 8%, transparent 45%), var(--element-color);
+  background-blend-mode: multiply, screen, normal;
+}
+cost > span {
+  position: absolute;
+  inset: 1mm;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  white-space: pre;
+  line-height: 1;
+  font-size: 9mm;
+  font-weight: bold;
+  background: linear-gradient(192deg, white 28%, #ff4df9 45%, #6c9cff 55%, #1ea5bc 60%, #471a72 73%);
+  background-clip: text;
+  color: transparent;
+  -webkit-text-stroke: var(--stroke-cost);
+  filter: drop-shadow(0 0.3mm 0.3mm rgba(0,0,0,0.65));
+}
+attribute::after {
+  content: "";
+  position: absolute;
+  /* Mesmo centro para SVG, preenchimento e moldura; sem deslocamentos por elemento. */
+  inset: 0.5mm;
+  background: white;
+  mask: var(--element-icon) center / contain no-repeat;
+}
+hp {
+  position: absolute;
+  top: 11mm;
+  right: 0;
+  width: 10mm;
+  height: 10mm;
+  display: grid;
+  place-items: center;
+  font-weight: bold;
+  --heart: url("./icons/coracao.svg");
+}
+hp::before, hp::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--gold);
+  mask: var(--heart) center / contain no-repeat;
+}
+hp::after { inset: 0.5mm; background: var(--element-darker-color); }
+hp span {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  max-width: 6.5mm;
+  font-size: 5.4mm;
+  line-height: 1;
+  text-box: trim-both cap alphabetic;
+  /* Dá folga à reentrância superior sem aproximar o número da ponta. */
+  transform: translateY(0.2mm);
+  text-align: center;
+}
+effect {
+  position: absolute;
+  bottom: -1.3mm;
+  left: 0;
+  transform: translateX(-50%);
+  width: 57mm;
+  height: 31mm;
+}
+effect-box, effect-text {
+  position: absolute;
+  inset: 0;
+  display: block;
+  box-sizing: border-box;
+  border-radius: 0 0 var(--radius) var(--radius);
+  text-align: justify;
+  text-align-last: left;
+}
+effect-box { background: color-mix(in srgb, color-mix(in srgb, var(--element-color) 18%, white) var(--effect-background-opacity), transparent); }
+effect-box::before { background: var(--gold); }
+effect-text {
+  color: black;
+  -webkit-text-stroke: var(--stroke-effect);
+  z-index: 1;
+  padding: 1.5mm 1.5mm 4mm;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  font-size: 2.8mm;
+  line-height: 1.2;
+}
+
+/* Exportação separada da descrição (--text). */
+card-data[data-separate-text] .card-bleed effect-text { visibility: hidden; }
+card-data[data-render-text] .card-bleed { visibility: hidden; }
+text-export {
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+text-export > effect {
+  top: 50%;
+  left: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+}
+text-export effect-box { background: transparent; }
