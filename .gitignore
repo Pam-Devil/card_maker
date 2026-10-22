@@ -1,1 +1,17 @@
 node_modules/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+/tests/
+
+#artes
+/assets/art
+
+# Cartas geradas
+/out/
+/output/
