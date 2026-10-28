@@ -79,6 +79,8 @@ out/Fluffusion/
 
 Somente as pastas necessárias são criadas. Os nomes indicam modo e DPI; arquivos de execuções anteriores não são removidos.
 
+Com vários JSONs, imagens e HTML recebem o nome do arquivo como prefixo: `fluffusion_01_trim_300dpi.png`, `faltantes_01_trim_300dpi.png` etc. Assim, IDs iguais em JSONs diferentes são aceitos, sem alterar o ID usado nas variáveis e em `--ids`. Nomes de JSON iguais ou equivalentes após normalização recebem sufixos (`deck`, `deck-2`...). IDs duplicados dentro do mesmo JSON continuam gerando erro. Com um único JSON, os nomes permanecem sem prefixo.
+
 | Exportação adicional | Conteúdo e dimensões no template atual |
 |---|---|
 | `--text` | Texto justificado e borda externa, sem preenchimento nem arte. Caixa centralizada em PNG transparente de **63 × 37 mm** no trim ou **69 × 43 mm** no bleed. |
@@ -88,7 +90,12 @@ A altura dos dois recortes é a altura da caixa mais duas vezes sua distância �
 
 ## PDFs para impressão
 
-Os PDFs usam os PNGs da execução atual, em tamanho real, respeitando a ordem do JSON, `--ids` e `quantity`. Uma falha de carta ou ID impede sua geração. Vários JSONs são reunidos em `deck_...pdf`.
+Os PDFs usam os PNGs da execução atual, em tamanho real, respeitando a ordem do JSON, `--ids` e `quantity`. Uma falha de carta ou ID impede sua geração. Vários JSONs são reunidos em um PDF por tipo, com nomes `deck_...pdf`, na ordem dos arquivos do comando e das cartas de cada arquivo. As variáveis e os grupos de fonte permanecem independentes por JSON.
+
+```sh
+node build.mjs cards/Fluffusion.json cards/faltantes.json --trim --text --bg-text --pdf --out
+# PDFs conjuntos em out/deck/pdf/
+```
 
 | PDF | Área de cada imagem | Capacidade padrão em A4 |
 |---|---|---|

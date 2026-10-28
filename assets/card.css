@@ -161,10 +161,12 @@ card-archetype::after { content: var(--card-archetype); }
 cost, attribute {
   position: absolute;
   top: 0;
+  width: 12mm;
+  height: 12mm;
   border-radius: 50%;
 }
-cost { left: 0; width: 12mm; height: 12mm; }
-attribute { right: 0; width: 10mm; height: 10mm; }
+cost { left: 0; }
+attribute { right: 0; }
 cost::before, attribute::before {
   content: "";
   position: absolute;
@@ -201,13 +203,14 @@ attribute::after {
 hp {
   position: absolute;
   top: 11mm;
-  right: 0;
+  right: 1mm;
   width: 10mm;
   height: 10mm;
   display: grid;
   place-items: center;
   font-weight: bold;
   --heart: url("./icons/coracao.svg");
+  --heart-fill: url("./icons/coracao-fill.svg");
 }
 hp::before, hp::after {
   content: "";
@@ -216,7 +219,11 @@ hp::before, hp::after {
   background: var(--gold);
   mask: var(--heart) center / contain no-repeat;
 }
-hp::after { inset: 0.5mm; background: var(--element-darker-color); }
+hp::after {
+  background: var(--element-darker-color);
+  /* A mesma caixa evita deslocamentos entre as duas máscaras na rasterização. */
+  mask-image: var(--heart-fill);
+}
 hp span {
   position: relative;
   z-index: 1;

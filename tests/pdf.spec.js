@@ -208,3 +208,75 @@ test("identificação usa linha única, ajusta nomes longos e aceita arquétipo 
     expect(page.labels.every(label => label.y > boxes[0][1] + boxes[0][3])).toBe(true);
   }
 });
+
+
+test("PDFs reúnem todos os JSONs com IDs repetidos, variáveis próprias e quantidade de cada carta", async ({}, info) => {
+  const directory = info.outputPath("decks");
+  await fs.mkdir(directory, { recursive: true });
+  const sources = [
+    { file: "primeiro.json", title: "Carta A", quantity: 2 },
+    { file: "segundo.json", title: "Carta B", quantity: 3 },
+  ];
+  for (const source of sources) {
+    await fs.writeFile(path.join(directory, source.file), JSON.stringify({
+      variables: { title: source.title, family: `Grupo ${source.title}`, description: `Descrição de ${source.title}.` },
+      cards: [
+        { ...card, id: "01", name: "${title}", archetype: "${family}", effect: "${description}", quantity: source.quantity },
+        { id: "02", art: "http://localhost:1/should-not-load.png" },
+      ],
+    }));
+  }
+  const { stdout } = await run(process.execPath, ["build.mjs", ...sources.map(source => path.join(directory, source.file)),
+    "--trim", "--text", "--bg-text", "--pdf", "--save-html", "--ids", "01", "--out", directory], { cwd: ROOT });
+  expect(stdout).toContain("2 carta(s) gerada(s), 0 com erro");
+  expect(await outputFiles(directory, ".png")).toEqual([
+    "bg_text/primeiro_01_bg_text_trim_300dpi.png", "bg_text/segundo_01_bg_text_trim_300dpi.png",
+    "text/primeiro_01_text_trim_300dpi.png", "text/segundo_01_text_trim_300dpi.png",
+    "trim/primeiro_01_trim_300dpi.png", "trim/segundo_01_trim_300dpi.png",
+  ]);
+  expect(await outputFiles(directory, ".html")).toEqual(["html/primeiro_01.html", "html/segundo_01.html"]);
+  const first = await fs.readFile(path.join(directory, "trim", "primeiro_01_trim_300dpi.png"));
+  const second = await fs.readFile(path.join(directory, "trim", "segundo_01_trim_300dpi.png"));
+  expect(first.equals(second)).toBe(false);
+  const pdfs = await outputFiles(directory, ".pdf");
+  expect(pdfs).toEqual(["pdf/deck_bg_text_trim_300dpi.pdf", "pdf/deck_text_trim_300dpi.pdf", "pdf/deck_trim_300dpi.pdf"]);
+  for (const pdf of pdfs) {
+    const pages = await inspect(path.join(directory, pdf));
+    expect(pages.map(page => page.images.length)).toEqual([5]);
+    if (pdf.includes("_text_")) {
+      expect(pages[0].labels.map(label => label.text)).toEqual([
+        "Carta A | Grupo Carta A", "Carta A | Grupo Carta A",
+        "Carta B | Grupo Carta B", "Carta B | Grupo Carta B", "Carta B | Grupo Carta B",
+      ]);
+    } else {
+      safeImages(pages[0], 63, 88);
+      expect(pages[0].labels).toEqual([]);
+    }
+  }
+});
+
+test("JSONs de pastas diferentes com o mesmo nome recebem prefixos distintos", async ({}, info) => {
+  const directory = info.outputPath("same-names");
+  const sources = [];
+  for (const [folder, name] of [["a", "Primeira"], ["b", "Segunda"]]) {
+    const parent = path.join(directory, folder);
+    await fs.mkdir(parent, { recursive: true });
+    const file = path.join(parent, "deck.json");
+    await fs.writeFile(file, JSON.stringify([{ ...card, name }]));
+    sources.push(file);
+  }
+  await run(process.execPath, ["build.mjs", ...sources, "--pdf-text", "--trim", "--out", directory], { cwd: ROOT });
+  expect(await outputFiles(directory, ".png")).toEqual([
+    "text/deck-2_01_text_trim_300dpi.png", "text/deck_01_text_trim_300dpi.png",
+    "trim/deck-2_01_trim_300dpi.png", "trim/deck_01_trim_300dpi.png",
+  ]);
+  const [page] = await inspect(path.join(directory, "pdf", "deck_text_trim_300dpi.pdf"));
+  expect(page.images).toHaveLength(2);
+  expect(page.labels.map(label => label.text)).toEqual(["Primeira | Filhote Fluffusion", "Segunda | Filhote Fluffusion"]);
+});
+
+test("IDs repetidos dentro do mesmo JSON continuam gerando erro e impedem o PDF", async ({}, info) => {
+  const files = await fixture(info, [card, { ...card, name: "Outra carta" }]);
+  await expect(generate(files, ["--pdf", "--trim"])).rejects.toMatchObject({ code: 1, stderr: expect.stringContaining("nome de saída duplicado") });
+  expect(await outputFiles(files.directory, ".pdf")).toEqual([]);
+});
