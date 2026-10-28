@@ -7,11 +7,6 @@ node_modules/
 /playwright/.cache/
 /playwright/.auth/
 
-/tests/*
-!/tests/expression-parser.spec.js
-!/tests/capture-scroll.spec.js
-!/tests/id-ranges.spec.js
-
 #artes
 /assets/art
 
