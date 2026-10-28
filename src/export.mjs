@@ -11,7 +11,10 @@ export async function exportPng(png, destination, opts, size = {}) {
   let result = sharp(sized);
   if (opts.rounded) {
     const radius = mmToPx(MM.radius, opts.dpi);
-    const mask = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}"><rect width="${width}" height="${height}" rx="${radius}" fill="white"/></svg>`);
+    const shape = opts.roundedBottomOnly
+      ? `<path d="M0 0H${width}V${height - radius}A${radius} ${radius} 0 0 1 ${width - radius} ${height}H${radius}A${radius} ${radius} 0 0 1 0 ${height - radius}Z" fill="white"/>`
+      : `<rect width="${width}" height="${height}" rx="${radius}" fill="white"/>`;
+    const mask = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${shape}</svg>`);
     result = result.composite([{ input: mask, blend: "dest-in" }]);
   }
   await result.withMetadata({ density: opts.dpi }).png().toFile(destination);
