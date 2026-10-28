@@ -53,13 +53,13 @@ for (const dpi of [300, 600]) {
         expect(alpha(Math.floor(pixels.width / 2), borderY)).toBeGreaterThan(200);
         const { data: mainPixels, info: mainInfo } = await sharp(path.join(directory, mode, mainName)).removeAlpha().raw().toBuffer({ resolveWithObject: true });
         const center = (Math.floor(mainInfo.height * 0.85) * mainInfo.width + Math.floor(mainInfo.width / 2)) * mainInfo.channels;
-        // A caixa mantém o fundo claro mesmo quando só o texto é exportado à parte.
+        // A caixa mantém o fundo claro abaixo da descrição curta.
         for (let channel = 0; channel < 3; channel++) {
           expect(mainPixels[center + channel]).toBeGreaterThan(180);
           expect(mainPixels[center + channel]).toBeLessThan(220);
         }
         const html = await fs.readFile(path.join(directory, "html", "split.html"), "utf8");
-        expect(html).toContain("data-separate-text");
+        expect(html).not.toContain("data-separate-text");
         expect(html).not.toContain("<text-export");
         expect(html).not.toContain("data-render-text");
       });
@@ -84,7 +84,7 @@ test("a imagem de texto acompanha a geometria do template e preserva a fonte", a
     expect(await page.locator("effect-text").evaluate(el => getComputedStyle(el).fontSize)).toBe(before);
     expect(await page.locator("effect").evaluate(el => getComputedStyle(el).visibility)).toBe("visible");
     expect(await page.locator("effect-box").evaluate(el => getComputedStyle(el).visibility)).toBe("visible");
-    expect(await page.locator("effect-text").evaluate(el => getComputedStyle(el).visibility)).toBe("hidden");
+    expect(await page.locator("effect-text").evaluate(el => getComputedStyle(el).visibility)).toBe("visible");
     expect(await page.locator("text-export").count()).toBe(0);
     expect(await page.locator("card-name span").textContent()).toBe(card.name);
   } finally { await new Promise(resolve => server.close(resolve)); }
@@ -112,7 +112,7 @@ test("--no-description mantém a caixa e o fundo sem exportar texto separado", a
 test("exportação de texto invisível informa o erro e limpa o estado temporário", async ({ page }) => {
   const server = await startServer(ROOT);
   try {
-    await renderCard(page, `http://127.0.0.1:${server.address().port}`, "template.html", card, { trim: true, text: true });
+    await renderCard(page, `http://127.0.0.1:${server.address().port}`, "template.html", card, { trim: true, text: true, noDescription: true });
     const hidden = await page.addStyleTag({ content: "text-export { display: none !important; }" });
     const stylesBefore = await page.locator("style").count();
     await expect(renderText(page, { trim: true })).rejects.toThrow("Template sem área de exportação de texto visível (--text)");
@@ -125,3 +125,23 @@ test("exportação de texto invisível informa o erro e limpa o estado temporár
     expect((await sharp(result.png).metadata()).width).toBeGreaterThan(0);
   } finally { await new Promise(resolve => server.close(resolve)); }
 });
+
+
+for (const trim of [false, true]) {
+  test(`--text preserva a carta e --no-description oculta apenas sua descrição: trim=${trim}`, async ({ page }) => {
+    const server = await startServer(ROOT);
+    try {
+      const baseUrl = `http://127.0.0.1:${server.address().port}`;
+      const normal = await renderCard(page, baseUrl, "template.html", card, { trim });
+      const withText = await renderCard(page, baseUrl, "template.html", card, { trim, text: true });
+      expect(withText.equals(normal)).toBe(true);
+      const separate = await renderText(page, { trim });
+      expect(await page.locator("effect-text").evaluate(el => getComputedStyle(el).visibility)).toBe("visible");
+      const hidden = await renderCard(page, baseUrl, "template.html", card, { trim, text: true, noDescription: true });
+      expect(hidden.equals(normal)).toBe(false);
+      const separateHidden = await renderText(page, { trim });
+      expect(separateHidden.png.equals(separate.png)).toBe(true);
+      expect(await page.locator("effect-text").evaluate(el => getComputedStyle(el).visibility)).toBe("hidden");
+    } finally { await new Promise(resolve => server.close(resolve)); }
+  });
+}

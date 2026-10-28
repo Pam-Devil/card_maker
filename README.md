@@ -1,317 +1,236 @@
 # Gerador de cartas
 
-Preencha um JSON em `cards/` com uma carta ou uma lista de cartas. A arte pode ser um caminho relativo ao projeto, uma URL HTTP(S) ou uma data URL.
+Gera cartas PNG e PDFs A4 a partir de JSONs em `cards/`, usando HTML/CSS para o layout.
+
+## Instalação e início rápido
 
 ```sh
 npm install
 npx playwright install chromium
-npm run build:600 -- --trim --rounded
+npm run build:600 -- --trim --rounded --out
 ```
 
-O deck padrão é `cards/Fluffusion.json`. Para artes em URLs HTTP de `localhost`, `127.0.0.1` ou `[::1]`, o gerador verifica a porta e, se estiver livre, inicia `python -m http.server` servindo `assets/art/`. O Python precisa estar instalado e disponível como `python`. O servidor iniciado pelo gerador é encerrado ao terminar, inclusive quando há erros ou interrupção. Servidores que já estavam ativos são reutilizados e permanecem abertos. Portas diferentes são atendidas por servidores separados. A detecção ocorre depois da substituição das variáveis do JSON.
-
-```sh
-node build.mjs cards/exemplo.json --dpi 300 --out out/exemplo
-node build.mjs cards/Fluffusion.json --dpi 600 --trim --rounded --out out/fluffusion
-node build.mjs --help
-npm test
-```
-
-Sem `--trim`, a saída é `ID_bleed_600dpi.png` (69 × 94 mm), com a linha de corte indicando a carta de 63 × 88 mm e os 3 mm de sangria ao redor. Com `--trim`, a saída é somente `ID_trim_600dpi.png` (63 × 88 mm), sem guia por padrão. `--guides` permite exibir a guia também com `--trim`. `--rounded` aplica cantos transparentes de raio 6 mm à imagem escolhida. Arquivos de execuções anteriores permanecem na pasta; use uma pasta de saída diferente para cada versão.
-
-Campos: `id` (opcional, usado no nome do arquivo), `quantity` (opcional, padrão `1`), `font_size` (opcional, padrão `null`), `name`, `archetype`, `element`, `cost`, `atk`, `hp`, `art`, `effect` e `artPosition` (opcional, padrão `50% 30%`). Use `\n` para quebras de linha no efeito. Elementos: pyro, hydro, electro, anemo, cryo, dendro, geo, caelo e abysso. O layout atual exibe custo e vida; `atk` permanece nos dados para uso pelas regras do jogo.
-
-`build.mjs` é a entrada da linha de comando. `src/` contém argumentos, validação, servidor local, preenchimento de texto e exportação. `template.html` e `assets/card.css` definem o layout. As medidas de `:root` no CSS correspondem a `MM` em `src/export.mjs`, sem escalas que deformem círculos. `index.html` permite conferir a primeira carta do Fluffusion quando servido por HTTP.
-
-`--save-html` salva o DOM preenchido em `html/`, com os caminhos dos recursos ajustados à pasta de saída. Sirva a raiz do projeto por HTTP para visualizar as máscaras SVG. Os geradores antigos foram removidos e `cards/nicole.json` foi migrado para o formato atual.
-
-O campo `cost` aceita números ou texto, como `"cost": "X"`, `"cost": "X+1"` e `"cost": "∞"`. O tamanho da fonte se ajusta ao espaço do círculo.
-
-Todos os contornos dos textos ficam no início de `assets/card.css`, dentro de `:root`: `--stroke-text` controla nome e vida; `--stroke-effect` controla a descrição; `--stroke-archetype` controla o arquétipo; `--stroke-cost` controla o custo. Cada variável recebe espessura e cor, por exemplo `0.2mm black`.
-
-## Tamanho da fonte por carta
-
-Use `font_size` para definir o tamanho **fixo da descrição em milímetros**, com casas decimais:
-
-```json
-"font_size": 2.58
-```
-
-Com `"font_size": null` ou sem o campo, o ajuste automático continua usando de 2,8 a 1,5 mm. Todas as cartas atuais receberam `font_size: null`, preservando seu tamanho automático. Um número positivo fixa o tamanho escolhido, inclusive fora desse intervalo; não é reduzido automaticamente. Se o texto não couber, o aviso exibe somente o ID da carta, a fonte atual e a fonte máxima recomendada, em milímetros, sem repetir a descrição. A recomendação é medida na própria caixa e arredondada para baixo com duas casas decimais; pode ficar abaixo de 1,5 mm, mas não altera a fonte exportada. Se os separadores ou espaçamentos impedirem o encaixe mesmo reduzindo a fonte, a recomendação aparece como `indisponível`. O campo afeta apenas a descrição, tanto na carta quanto na exportação separada e nos PDFs. Ao concluir cada carta, o console mostra o tamanho final da fonte em milímetros, com duas casas decimais, indicando se foi automático ou fixo: `fonte: 2.33 mm (automática)`. Para compartilhar o modo automático, declare `"auto_font": null` dentro de `variables` e use `"font_size": "${auto_font}"` na carta. Use `null` sem aspas; `"null"` é texto.
-
-Use um número sem unidade, como `2.58`, e não `"2.58mm"` ou `"2.58"`. O campo `font_size` preserva os decimais de valores diretos, variáveis, aliases, referências dinâmicas e cálculos. Por exemplo, declare `"fonte": 2.58` em `variables` e use `"font_size": "${fonte}"`; o tamanho será 2,58 mm. Também é possível usar `"font_size": "${hp / 2}"`, que resulta em 2,5 mm para `hp = 5`. As funções explícitas `trunc`, `floor`, `ceil` e `round` continuam disponíveis. Essa exceção vale apenas para `font_size`: a mesma variável `${fonte}` usada no efeito ou em outro campo continua retornando `2`, conforme a regra geral de inteiros. Referências a atributos da carta, como `hp`, usam o valor já resolvido do atributo.
-
-## Separador na descrição
-
-Uma linha contendo apenas `---` gera um separador horizontal dentro da caixa de texto:
-
-```json
-"effect": "Primeiro efeito.\n---\nSegundo efeito."
-```
-
-O separador também funciona em textos de `variables`, depois da substituição das variáveis, e acompanha os PNGs da carta, a exportação `--text` e os PDFs. Quebras de linha comuns e a justificação são preservadas. `---` no meio de uma frase continua sendo texto; tags como `<hr>` também são tratadas como texto literal.
-
-Os parâmetros ficam no início de `assets/card.css`, dentro de `:root`:
-
-```css
---effect-separator-thickness: 0.15mm; /* Espessura do traço. */
---effect-separator-gap: 0.5mm;       /* Espaço acima e abaixo. */
---effect-separator-width: 100%;     /* Largura; 60% faz uma linha menor centralizada. */
---effect-separator-color: black;    /* Cor. */
-```
-
-Com os valores padrão, o separador ocupa aproximadamente 1,15 mm de altura, menos que uma linha de texto. O ajuste automático da fonte considera esse espaço. A largura é limitada à área interna da caixa. Espessuras muito finas, como `0.02mm` e `0.03mm`, são suavizadas na rasterização: quando o traço ocupa menos de um pixel, ele aparece mais claro, em vez de saltar para uma linha preta inteira. A mesma espessura pode parecer diferente conforme o DPI e o zoom do visualizador.
-
-## Variáveis no JSON
-
-Para reutilizar valores em várias cartas e campos, use um objeto com `variables` e `cards`:
-
-```json
-{
-  "variables": {
-    "archetype": "Fluffusion",
-    "P_cost": 1,
-    "P_hp": 2,
-    "P_effect": "bla bla bla\nbla bla bla"
-  },
-  "cards": [
-    {
-      "id": "01",
-      "name": "Flurruff",
-      "archetype": "Filhote ${archetype}",
-      "element": "cryo",
-      "cost": "${P_cost}",
-      "atk": 0,
-      "hp": "${P_hp}",
-      "art": "http://localhost:8000/Y-Cryo.png",
-      "effect": "${P_effect}\nbla bla bla"
-    }
-  ]
-}
-```
-
-A substituição `${nome}` vale para todos os valores de texto das cartas, incluindo custo, nome, efeito e caminho da arte. Variáveis aceitam texto, números, `null` ou seleções por ID, e podem referenciar outras variáveis. Uma referência isolada preserva o tipo do valor (`"${P_hp}"` vira o número `2`, e uma referência a uma variável com valor `null` continua sendo `null`); dentro de uma frase, o valor vira texto, inclusive `null`, que aparece como `null`. Variáveis inexistentes ou referências circulares geram um erro. As variáveis pertencem somente ao arquivo em que foram declaradas. Os formatos anteriores, com uma carta ou uma lista de cartas, continuam funcionando.
-
-Nomes de variáveis também podem ser montados dinamicamente. Em `${${element}_name}`, o gerador resolve `${element}` primeiro; se o elemento for `cryo`, ele busca `cryo_name`:
-
-```json
-{
-  "variables": {
-    "cryo_name": "Flurruff",
-    "pyro_name": "Brasa",
-    "shared_effect": "Posso buscar um ${${element}_name} no meu deck."
-  },
-  "cards": [
-    {
-      "id": "01",
-      "name": "Adulto Flurruff",
-      "element": "cryo",
-      "cost": 2,
-      "atk": 0,
-      "hp": 3,
-      "effect": "${shared_effect}"
-    }
-  ]
-}
-```
-
-Nesse exemplo, o efeito resulta em `Posso buscar um Flurruff no meu deck.`. A resolução ocorre por carta, inclusive dentro de `variables`. É possível usar vários níveis, vários trechos no nome e cálculos, como `${${element}_hp}` e `${${${element}_hp} + 2}`. Referências isoladas preservam o tipo numérico; valores inseridos em frases viram texto. Nomes inexistentes, referências circulares e blocos `${...}` sem fechamento geram erro.
-
-## Variáveis condicionais por ID
-
-Uma variável pode escolher seu valor conforme o ID resolvido da carta. Use `default` para o valor de fallback e uma lista `cases`:
-
-```json
-"variables": {
-  "fonte": {
-    "default": null,
-    "cases": [
-      { "ids": ["01-05", "08", "12"], "value": 2.58 },
-      { "ids": ["06-07", "09-11"], "value": 2.33 }
-    ]
-  }
-}
-```
-
-Em cada carta, use `"font_size": "${fonte}"`. O primeiro caso correspondente prevalece; sem correspondência, vale `default`, ou `null` quando `default` for omitido. Uma mesma lista `ids` aceita vários IDs e intervalos inclusivos. Para um formato compacto, `ids` também aceita texto (`"01-05"`), vários seletores separados por vírgula (`"01-05,08,12"`) ou um único número (`7`). `01-05` corresponde a `01`, `02`, `03`, `04` e `05`, preservando zeros à esquerda; `1-5` corresponde aos IDs sem zeros. IDs individuais também podem ser números, como `7`, ou textos, como `"card-x"`.
-
-Esse recurso também vale para variáveis usadas em efeitos, custo, vida, quantidade e outros campos. `value` e `default` aceitam texto, números, `null` e referências a outras variáveis, inclusive expressões e nomes dinâmicos. Apenas o ramo escolhido é expandido para cada carta. As regras de precisão continuam as mesmas: `font_size` preserva decimais; os demais campos seguem o truncamento de variáveis numéricas.
-
-## Fonte mínima por grupo de IDs
-
-Para padronizar a fonte de um grupo, use `{"auto": "min"}` como `value`:
-
-```json
-"variables": {
-  "fonte": {
-    "default": null,
-    "cases": [
-      { "ids": ["01-05", "08"], "value": { "auto": "min" } },
-      { "ids": ["06-07", "09-11"], "value": { "auto": "min" } },
-      { "ids": ["12-15"], "value": 2.58 }
-    ]
-  }
-}
-```
-
-As cartas que usam `"font_size": "${fonte}"` e correspondem ao primeiro caso compartilham uma fonte; as do segundo caso compartilham outra. O gerador mede a fonte automática de cada membro e aplica o menor tamanho a todos os membros daquele grupo, sem arredondar o tamanho medido. Por exemplo, tamanhos automáticos de 2,80, 2,58 e 2,33 mm resultam em 2,33 mm para todo o grupo. Valores fixos e `default: null` continuam disponíveis nos demais casos.
-
-Com `--ids`, o cálculo considera o grupo completo do mesmo JSON, incluindo membros não selecionados e cartas com `quantity: 0`. Assim, regenerar uma única carta mantém a mesma fonte. As artes dos membros não selecionados não são carregadas para essa medição. Só são medidos os grupos necessários à exportação solicitada, e cada JSON mantém seus próprios grupos.
-
-O resultado é aplicado à carta, aos arquivos de `--text` e `--bg-text`, aos PDFs e à prévia `index.html`. O console identifica esses tamanhos como `mínima do grupo`. `{"auto":"min"}` só pode ocupar o valor completo de `font_size`, diretamente por uma referência ou por aliases; não pode ser inserido em frases nem usado em cálculos.
-
-Também é possível usar `"default": {"auto":"min"}` para agrupar as cartas sem correspondência, ou declarar `"fonte": {"auto":"min"}` em `variables` para um único grupo com todas as cartas que utilizam essa variável em `font_size`.
-
-## Cartas sem descrição
-
-Use `--no-description` para ocultar o texto da descrição e seus separadores, preservando a caixa, as bordas e o fundo:
-
-```sh
-node build.mjs cards/Fluffusion.json --trim --rounded --no-description --out
-```
-
-A opção funciona com trim e bleed e afeta somente a carta principal e seu PDF. Sozinha, ela gera apenas as cartas, sem criar a imagem de texto separado. Se você incluir `--text`, `--bg-text` ou `--pdf-text`, os arquivos separados continuam contendo a descrição normalmente, inclusive os respectivos PDFs.
-
-## Descrição em imagem separada
-
-```sh
-node build.mjs cards/Fluffusion.json --dpi 600 --trim --rounded --text --out out/fluffusion-text
-```
-
-`--text` gera dois PNGs por carta: `ID_trim_600dpi.png`, com nome, custo, vida, elemento e arte, mantendo a caixa de descrição e seu fundo, mas sem o texto; e `ID_text_trim_600dpi.png`, com somente o texto justificado e a borda externa da caixa, em fundo transparente. Na imagem separada, a caixa não leva o preenchimento colorido nem a arte de fundo.
-
-A segunda imagem mantém a largura da carta exportada. Sua altura é a altura da caixa mais duas vezes a distância entre a caixa e a borda inferior da carta; a caixa fica centralizada na horizontal e na vertical. As medidas vêm do template. As margens laterais e inferior entre a caixa e o trim são iguais: 3 mm, definidos por `--safe-inset` no início de `assets/card.css`. Por padrão, `--effect-bottom-gap` acompanha esse valor. No layout atual, com `--trim`, são 63 × 37 mm (31 mm de caixa e 3 mm de margem em cada lado vertical). Sem `--trim`, a largura inclui sangria, a margem inferior inclui os 3 mm adicionais e a saída é 69 × 43 mm, com nome `ID_text_bleed_600dpi.png`.
-
-`--rounded` arredonda a carta principal; a imagem de texto preserva somente a borda original da caixa e sua transparência. O tamanho ajustado da fonte, o stroke e a justificação da descrição são mantidos. Sem `--text`, a geração continua incluindo a descrição na própria carta.
-
-## Região inferior com fundo
-
-`--bg-text` gera um PNG adicional com a região inferior da própria carta: arte de fundo, caixa de descrição completa, texto, separadores e molduras laterais e inferior. A largura acompanha a carta exportada. O recorte começa acima da caixa por uma distância igual à margem entre a caixa e a borda inferior e termina na borda inferior da carta.
-
-```sh
-node build.mjs cards/Fluffusion.json --dpi 600 --trim --bg-text --out
-```
-
-O arquivo fica em `out/Fluffusion/bg_text/ID_bg_text_trim_600dpi.png`. No layout atual, mede 63 × 37 mm com `--trim`. Sem `--trim`, inclui a sangria, mede 69 × 43 mm e usa o nome `ID_bg_text_bleed_600dpi.png`. A região é recortada da carta já montada, preservando escala e posição da arte, fonte e bordas. Templates com outras medidas são calculados a partir da posição real da caixa.
-
-Com `--rounded`, somente os cantos inferiores desse recorte ficam arredondados; o topo continua reto. É possível combinar `--bg-text` com `--text`: a carta principal fica com a caixa vazia, a imagem de `text/` contém a descrição transparente e a imagem de `bg_text/` contém a região inferior completa com fundo e texto. A seleção `--ids` também vale para esses arquivos.
-
-Combine `--bg-text` com `--pdf` para gerar também um PDF A4 dos recortes inferiores:
-
-```sh
-node build.mjs cards/Fluffusion.json --dpi 600 --trim --bg-text --pdf --out
-```
-
-O PDF adicional fica na subpasta `pdf/`, com nome `fluffusion_bg_text_trim_600dpi.pdf` (ou `..._bleed_...pdf` sem trim). Ele preserva toda a imagem com fundo e bordas, sem remover suas margens, e repete as cartas conforme `quantity`, na ordem do JSON e respeitando `--ids`. Com margem de 5 mm e espaçamento de 1 ponto, cabem até 21 regiões trim (3 × 7) ou 12 regiões bleed (2 × 6) por página. As opções `--pdf-margin` e `--pdf-gap` também se aplicam. `--text --bg-text --pdf` gera os três PDFs: cartas, descrições transparentes e regiões inferiores com fundo.
-
-## Gerar somente alguns IDs
-
-```sh
-node build.mjs cards/Fluffusion.json --ids "01,04,10" --dpi 600 --trim --rounded --text
-```
-
-`--ids` recebe IDs separados por vírgula e pode ser repetido (`--ids "01" --ids "04,10"`). A seleção vale para todos os JSONs passados no comando e ocorre depois da substituição das variáveis, antes de validar ou carregar as artes das cartas selecionadas. Os IDs são comparados pelo valor exato: `01` é diferente de `1`; IDs numéricos do JSON são convertidos para texto para a comparação. IDs não encontrados são informados e o comando retorna erro. Sem `--ids`, todas as cartas são geradas. Imagens de execuções anteriores não são apagadas; use `--out` para escolher outra pasta quando necessário.
-
-As descrições usam texto preto e fundo claro semitransparente com uma tonalidade do elemento. A opacidade do fundo é controlada por `--effect-background-opacity` no início de `assets/card.css`: `70%` deixa 30% de transparência. O stroke da descrição é independente dos outros textos e pode ser ajustado em `--stroke-effect`, no início de `assets/card.css`. A imagem separada de `--text` mantém o fundo transparente.
-
-## Atributos da carta e cálculos
-
-Dentro de `${...}`, `name`, `element`, `hp` e `archetype` referenciam os atributos da própria carta. Isso também funciona em textos declarados em `variables`: um mesmo efeito compartilhado é resolvido individualmente para cada carta. Atributos são resolvidos antes do efeito; a ordem dos campos no JSON não importa. Por exemplo, `"archetype": "Família Fluffusion"` com `"effect": "Busque uma carta ${archetype}."` produz `Busque uma carta Família Fluffusion.`. Isso também vale quando o efeito está em `variables` ou quando o arquétipo foi montado usando outras variáveis.
-
-```json
-{
-  "variables": {
-    "baseHp": 3,
-    "effect": "${name} (${element}): Recupero ${hp / 2} de vida."
-  },
-  "cards": [
-    {
-      "id": "01",
-      "name": "Prismuff",
-      "element": "caelo",
-      "cost": "-",
-      "atk": 0,
-      "hp": "${baseHp + 2}",
-      "effect": "${effect}"
-    }
-  ]
-}
-```
-
-A vida calculada é `5` e a descrição é `Prismuff (caelo): Recupero 2 de vida.` São aceitos `+`, `-`, `*`, `/`, `%`, sinais unários e parênteses. Cálculos aceitam números e strings numéricas decimais, como `"2"`, `"2.58"` e `"2e1"`. O campo `hp` também converte strings numéricas antes do truncamento: `"hp": "5.9"` resulta em `5`, e `${hp / 2}` resulta em `2`. Custos textuais como `"X"`, `"?"` e `"-"` continuam sendo texto e geram erro se usados em cálculos. Strings vazias, `null`, unidades como `"2mm"` e valores não finitos não são convertidos em números; referências textuais fora dos cálculos preservam seu conteúdo. Não há execução de JavaScript, acesso a objetos ou avaliação de código no JSON.
-
-Exceto na resolução de `font_size`, valores numéricos das variáveis, `hp` numérico e o resultado de cada `${...}` são convertidos para inteiros com `trunc` por padrão (descarta a parte decimal, inclusive para negativos). As frações intermediárias de uma mesma expressão são preservadas: `${(hp / 2) * 2}` resulta em `5` quando `hp` é `5`. Já uma variável `half` declarada como `"${hp / 2}"` vale `2` antes de ser usada em outro cálculo.
-
-Para escolher outra regra, use `${trunc(hp / 2)}`, `${floor(hp / 2)}`, `${ceil(hp / 2)}` ou `${round(hp / 2)}`. Com `hp = 5`, os resultados são `2`, `2`, `3` e `3`, respectivamente. `round` arredonda empates em direção a mais infinito, como `round(-2.5) = -2`. As funções recebem um argumento. Divisões por zero, resultados não finitos, inteiros fora do limite seguro e referências circulares geram erro.
-
-Evite declarar variáveis gerais chamadas `name`, `element`, `hp` e `archetype`: nos efeitos, os atributos da carta têm prioridade. Por compatibilidade, ao compor o próprio atributo, uma referência ao mesmo nome pode usar a variável geral como base: `"element": "${element}"` usa `variables.element`, e `"archetype": "Filhote ${archetype}"` usa `variables.archetype`. Depois disso, `${archetype}` nos efeitos retorna o valor completo da carta, como `Filhote Fluffusion`. Para valores base e fórmulas, prefira nomes como `baseHp`, `cardName`, `baseElement` e `main_archetype`. As referências da carta e as expressões também funcionam nos formatos antigos de carta única e lista de cartas.
-
-## Quantidade de cópias no deck
-
-Cada carta pode declarar `"quantity": 3` para indicar três cópias no deck. O valor deve ser um inteiro maior ou igual a zero; `0` significa que a carta não faz parte da composição do deck. Quando omitido, o padrão é `1`, preservando a compatibilidade com JSONs antigos.
-
-O campo aceita variáveis e expressões, como `"quantity": "${copies}"` ou `"quantity": "${ceil(hp / 2)}"`. O resultado resolvido precisa ser numérico e não negativo; não use `"quantity": "3"` como texto simples, e sim `"quantity": 3`.
-
-A quantidade é um dado de composição do deck: não aparece no layout e não duplica os PNGs exportados. Nos PDFs de impressão, cada carta é repetida de acordo com `quantity`; quantidade zero não é impressa. Continua sendo gerada uma imagem por carta selecionada, independentemente da quantidade. Os JSONs atuais receberam `quantity: 1` em cada carta, para você ajustar as quantidades desejadas.
-
-## PDFs para impressão
-
-O gerador monta folhas A4 com imagens em tamanho real, sem alterar as dimensões das cartas. A exportação usa Python com ReportLab. Para preparar o ambiente no Windows:
+Para PDFs, prepare o ambiente Python com ReportLab. O gerador usa `.venv` quando disponível; caso contrário, usa `python` do sistema:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-O gerador usa esse ambiente automaticamente quando presente. Sem `.venv`, usa `python` do sistema (nesse caso, instale com `python -m pip install -r requirements.txt`). Para executar os testes de PDF, instale também `requirements-dev.txt` no mesmo ambiente.
+Para gerar outro deck ou consultar a ajuda:
 
 ```sh
-# Cartas completas: A4 com até 3 × 3 no trim
-node build.mjs cards/Fluffusion.json --dpi 600 --trim --rounded --pdf
-
-# Carta com caixa vazia e PDF separado com as descrições
-node build.mjs cards/Fluffusion.json --dpi 600 --trim --rounded --text --pdf
-
-# Somente o PDF de descrições (os PNGs também são gerados)
-node build.mjs cards/Fluffusion.json --dpi 600 --trim --pdf-text
-
-# Cartas completas e descrições separadas sem esvaziar o texto da carta
-node build.mjs cards/Fluffusion.json --dpi 600 --trim --pdf --pdf-text
+node build.mjs cards/exemplo1.json --dpi 300 --trim --out out/exemplo
+node build.mjs --help
 ```
 
-Os PDFs são gravados na subpasta `pdf/` de `--out`: por exemplo, `fluffusion_trim_600dpi.pdf` e `fluffusion_text_trim_600dpi.pdf`. Sem `--trim`, os nomes usam `bleed`. Vários JSONs no mesmo comando são reunidos em `deck_...pdf`.
+Artes aceitam caminhos relativos ao projeto, URLs HTTP(S) e data URLs. Se uma arte apontar para uma porta HTTP livre de `localhost`, `127.0.0.1` ou `[::1]`, o gerador inicia um servidor Python em `assets/art/` e o encerra ao terminar, inclusive em falhas ou interrupções. Servidores existentes são reutilizados e permanecem abertos; portas diferentes usam processos separados. Esse recurso requer `python` disponível no terminal e considera os caminhos após resolver as variáveis.
 
-O layout padrão usa margem mínima de **5 mm**, espaço de **1 pt** entre imagens e centralização horizontal e vertical, inclusive na última página. No trim são até **9 cartas por página (3 × 3)**; no bleed são **6 (2 × 3)**. As cartas preservam 63 × 88 mm ou 69 × 94 mm, respectivamente. `--pdf-margin 8` altera a margem para 8 mm; `--pdf-gap 2` altera o espaçamento para 2 pt. O número de linhas/colunas se adapta à área disponível, sem reduzir as imagens.
+## Geração e arquivos de saída
 
-O PDF de descrições usa **três colunas** e o máximo de linhas que couber na altura. Ele considera apenas os limites da borda externa da caixa de texto, removendo todo o espaço vazio ao redor, tanto em trim quanto em bleed. A borda e as letras mantêm seu tamanho original; os PNGs separados continuam com suas margens. No template atual, cada caixa mede aproximadamente **57 × 31 mm** e cabem até **27 descrições por página (3 × 9)** com as opções padrão. A distância entre as bordas é definida por `--pdf-gap` (1 ponto por padrão); use `--pdf-gap 0` para encostar as caixas e compartilhar as linhas de corte. Uma margem configurada que impossibilite as três colunas gera uma mensagem de erro.
+Use `node build.mjs <arquivo.json> [outro.json ...] [opções]`.
 
-Os PDFs respeitam `--ids`, a ordem das cartas no JSON e a quantidade de cópias em `quantity`. Eles são montados apenas com os arquivos gerados na execução atual. Se houver erro em uma carta ou ID solicitado, o PDF não é recriado. Para imprimir, selecione **tamanho real / escala de 100%**, sem ajustar à página.
+| Opção | Comportamento |
+|---|---|
+| `--dpi <n>` | Resolução da imagem; padrão `300`. |
+| `--trim` | Gera somente o corte de **63 × 88 mm**, sem imagens bleed. |
+| `--rounded` | Aplica cantos transparentes de raio **6 mm**, com ou sem trim. |
+| `--guides` | Mostra a guia também no trim; bleed já a inclui. |
+| `--text` | Exporta também a descrição transparente, mantendo o texto na carta. |
+| `--bg-text` | Exporta também a região inferior com fundo, descrição e molduras. |
+| `--no-description` | Oculta a descrição e os separadores somente na carta principal e em seu PDF; mantém a caixa e o fundo. |
+| `--pdf` | Gera PDF das cartas e, com `--text` ou `--bg-text`, os respectivos PDFs separados. |
+| `--pdf-text` | Gera PDF das descrições; os PNGs também são produzidos. |
+| `--pdf-margin <mm>` | Margem mínima da página; padrão `5`. |
+| `--pdf-gap <pt>` | Espaço entre conjuntos na página; padrão `1`. |
+| `--ids "01,04,10"` | Seleciona IDs exatos; aceita repetição da opção. |
+| `--out [pasta]` | Define a pasta-base; sem valor, usa o nome do JSON. |
+| `--save-html` | Salva o HTML preenchido para conferência. |
+| `--template <arquivo>` | Usa outro template dentro do projeto. |
+| `--help` | Exibe a ajuda. |
 
-## Saída organizada por tipo
-
-`--out <pasta>` define a pasta-base. Sem `--out`, a saída continua em `out/`. Se você passar apenas `--out`, sem caminho, o gerador usa `out/<nome do JSON>/`, preservando espaços e maiúsculas e removendo a extensão `.json`:
+Sem `--trim`, as cartas medem **69 × 94 mm**, incluindo **3 mm de sangria** em cada lado e a linha de corte. `--text`, `--bg-text` e `--no-description` podem ser combinados: somente a última opção oculta o texto na carta; as exportações separadas mantêm a descrição.
 
 ```sh
-node build.mjs cards/Fluffusion.json --trim --text --pdf --out
-# Saída: out/Fluffusion/trim/, out/Fluffusion/text/ e out/Fluffusion/pdf/
+# Carta completa e os dois recortes, com seus três PDFs
+node build.mjs cards/Fluffusion.json --trim --rounded --text --bg-text --pdf --out
+
+# Carta sem descrição, com o texto exportado separadamente
+node build.mjs cards/Fluffusion.json --trim --text --no-description --pdf --out
+
+# Somente os IDs indicados; mantenha as aspas para preservar os zeros no PowerShell
+node build.mjs cards/Fluffusion.json --ids "01,04,10" --dpi 600 --trim --out
 ```
 
-`--out` sem valor também pode vir antes de outra opção, como `--out --trim`. Coloque o JSON antes de `--out`, pois um caminho logo após essa opção é interpretado como a pasta de saída. Se houver vários JSONs no comando, a pasta automática será `out/deck/`, mantendo os arquivos reunidos.
+A seleção ocorre após resolver as variáveis e antes de validar ou carregar as artes selecionadas. `01` difere de `1`; IDs numéricos são comparados como texto. A opção vale para todos os JSONs informados; IDs ausentes geram erro. Sem `--ids`, todas as cartas são geradas.
 
-O gerador cria automaticamente as subpastas necessárias:
+### Pastas e recortes
+
+Sem `--out`, a base é `out/`. Com `--out pasta`, usa essa pasta; com apenas `--out`, usa `out/<nome do JSON>/`, preservando espaços e maiúsculas. Para vários JSONs, a pasta automática é `out/deck/`. Coloque o JSON antes de `--out`, pois o próximo argumento sem prefixo de opção será interpretado como pasta.
 
 ```text
-out/fluffusion/
-  trim/   PNGs das cartas com --trim
-  bleed/  PNGs das cartas sem --trim
-  text/   PNGs das descrições separadas
-  bg_text/ PNGs da região inferior completa, com fundo
-  pdf/    PDFs das cartas e das descrições
-  html/   HTML de depuração com --save-html
+out/Fluffusion/
+  trim/    ID_trim_600dpi.png          # ou bleed/ID_bleed_600dpi.png
+  text/    ID_text_trim_600dpi.png
+  bg_text/ ID_bg_text_trim_600dpi.png
+  pdf/     fluffusion_trim_600dpi.pdf  # também ..._text_... e ..._bg_text_...
+  html/    ID.html
 ```
 
-```sh
-node build.mjs cards/Fluffusion.json --dpi 600 --trim --rounded --text --pdf --out out/fluffusion
+Somente as pastas necessárias são criadas. Os nomes indicam modo e DPI; arquivos de execuções anteriores não são removidos.
+
+| Exportação adicional | Conteúdo e dimensões no template atual |
+|---|---|
+| `--text` | Texto justificado e borda externa, sem preenchimento nem arte. Caixa centralizada em PNG transparente de **63 × 37 mm** no trim ou **69 × 43 mm** no bleed. |
+| `--bg-text` | Recorte da carta com arte, caixa completa, texto, bordas laterais e inferior e uma faixa acima da caixa. Mesmas dimensões do PNG de texto; com `--rounded`, arredonda apenas os cantos inferiores. |
+
+A altura dos dois recortes é a altura da caixa mais duas vezes sua distância à borda inferior da carta. O cálculo acompanha a geometria do template; a imagem de `--text` conserva fonte, stroke e borda original, sem arredondamento adicional.
+
+## PDFs para impressão
+
+Os PDFs usam os PNGs da execução atual, em tamanho real, respeitando a ordem do JSON, `--ids` e `quantity`. Uma falha de carta ou ID impede sua geração. Vários JSONs são reunidos em `deck_...pdf`.
+
+| PDF | Área de cada imagem | Capacidade padrão em A4 |
+|---|---|---|
+| Cartas trim | 63 × 88 mm | **9** (3 × 3) |
+| Cartas bleed | 69 × 94 mm | **6** (2 × 3) |
+| Descrições | Caixa de 57 × 31 mm, mais identificação | **24** (3 × 8), em trim ou bleed |
+| Região inferior trim | 63 × 37 mm, mais identificação | **18** (3 × 6) |
+| Região inferior bleed | 69 × 43 mm, mais identificação | **12** (2 × 6) |
+
+Essas capacidades consideram margem de **5 mm** e espaçamento de **1 pt**. O grid é centralizado nos dois eixos, inclusive na última página; as imagens não são reduzidas. `--pdf-margin` e `--pdf-gap` alteram o aproveitamento. O PDF de descrições exige três colunas e informa erro se elas não couberem.
+
+O PDF de descrições recorta somente a borda externa da caixa, retirando as margens vazias do PNG. O PDF de `--bg-text` conserva o recorte completo. Com `--pdf-gap 0`, as colunas encostam; na vertical, permanece a faixa de identificação.
+
+As duas versões separadas, incluindo `--pdf-text`, exibem **Nome | Arquétipo** acima de cada imagem: linha única em **7 pt**, com redução uniforme da fonte quando necessário. Sem arquétipo, mostram apenas o nome. A identificação não é acrescentada aos PNGs nem ao PDF de cartas completas.
+
+Para imprimir, escolha **tamanho real / 100%**, sem ajustar à página.
+
+## JSON das cartas
+
+São aceitos uma carta isolada, uma lista de cartas ou um objeto `{ "variables": ..., "cards": [...] }`. Exemplo com valores compartilhados:
+
+```json
+{
+  "variables": {
+    "main_archetype": "Fluffusion",
+    "cryo_name": "Furfluff",
+    "baseHp": 5,
+    "effect": "${name}: Recupero ${hp / 2} de vida."
+  },
+  "cards": [
+    {
+      "id": "01",
+      "name": "${${element}_name}",
+      "archetype": "Filhote ${main_archetype}",
+      "element": "cryo",
+      "cost": "X",
+      "atk": 0,
+      "hp": "${baseHp}",
+      "quantity": 1,
+      "font_size": null,
+      "art": "assets/art/P-Cryo.png",
+      "artPosition": "50% 30%",
+      "effect": "${effect}\n---\nSegundo efeito."
+    }
+  ]
+}
 ```
 
-Nesse exemplo, as cartas vão para `out/fluffusion/trim/`, as descrições para `out/fluffusion/text/` e os dois PDFs para `out/fluffusion/pdf/`. Os nomes dos arquivos continuam indicando trim/bleed e DPI. O PDF usa os PNGs das novas pastas. Arquivos de execuções anteriores permanecem onde estavam; a organização vale para as novas exportações.
+O efeito começa com `Furfluff: Recupero 2 de vida.`. Use `\n` para quebras de linha. Uma linha contendo apenas `---` vira um separador; `---` dentro de uma frase e tags como `<hr>` permanecem texto literal.
+
+| Campo | Uso |
+|---|---|
+| `id` | Identificador para seleção e nome do arquivo; quando ausente, o nome da carta é usado no arquivo. |
+| `name`, `archetype` | Nome e arquétipo exibidos na carta e nas identificações dos PDFs separados. |
+| `element` | Obrigatório: `pyro`, `hydro`, `electro`, `anemo`, `cryo`, `dendro`, `geo`, `caelo` ou `abysso`. |
+| `cost` | Obrigatório; número ou texto como `"-"`, `"X"`, `"X+1"` e `"∞"`. A fonte se ajusta ao círculo. |
+| `hp`, `atk` | Obrigatórios; o layout mostra a vida. `atk` permanece nos dados para as regras do jogo. |
+| `quantity` | Inteiro não negativo; padrão `1`. Repete cópias nos PDFs, sem duplicar PNGs nem aparecer na carta. `0` exclui da impressão. |
+| `font_size` | Fonte da descrição em mm; número positivo ou `null` para ajuste automático. |
+| `art`, `artPosition` | Caminho/URL da arte e posição no quadro; posição padrão `50% 30%`. |
+| `effect` | Descrição justificada, com quebras de linha e separadores. |
+
+Valores fixos de `quantity` e `font_size` usam números, não texto: use `3` e `2.58`, ou referências que retornem números; não `"3"`, `"2.58"` ou `"2.58mm"`.
+
+### Variáveis, referências e cálculos
+
+- `variables` tem escopo por JSON e aceita texto, números, `null`, seleções por ID e o modo de fonte em grupo descrito abaixo. Nomes podem conter espaços, como `${fonte base}`.
+- `${variavel}` preserva o tipo quando ocupa o valor completo; em uma frase, o valor vira texto, inclusive `null`. Use `null` sem aspas para representar ausência.
+- `name`, `element`, `hp` e `archetype` referenciam os atributos da própria carta, inclusive dentro de variáveis compartilhadas. A ordem dos campos não importa.
+- Referências podem conter outras referências: `${${element}_name}` procura `cryo_name` para uma carta cryo; vários níveis e nomes compostos são aceitos.
+- Nos efeitos, atributos da carta têm prioridade sobre variáveis gerais de mesmo nome. Por compatibilidade, ao compor o próprio campo, `${archetype}` pode usar `variables.archetype` como base. Prefira nomes gerais como `main_archetype` e `baseHp`.
+
+Expressões aceitam `+`, `-`, `*`, `/`, `%`, sinais unários e parênteses, sem executar JavaScript. Números e strings numéricas decimais, inclusive notação científica, podem participar de cálculos. Texto como `"X"`, strings vazias, unidades e `null` não podem. Em `hp`, strings numéricas são convertidas antes do truncamento: `"5.9"` vira `5`.
+
+Por padrão, variáveis numéricas e resultados finais são truncados para inteiros. Frações intermediárias da mesma expressão são preservadas: com `hp = 5`, `${hp / 2}` resulta em `2`, mas `${(hp / 2) * 2}` resulta em `5`. Uma variável intermediária `half: "${hp / 2}"` já vale `2` ao entrar em outro cálculo. **`font_size` preserva decimais em toda a cadeia de variáveis e expressões**; atributos como `hp` continuam usando seu valor já resolvido.
+
+| Expressão com `hp = 5` | Resultado |
+|---|---|
+| `${trunc(hp / 2)}` | `2` (descarta a parte decimal) |
+| `${floor(hp / 2)}` | `2` (arredonda para baixo) |
+| `${ceil(hp / 2)}` | `3` (arredonda para cima) |
+| `${round(hp / 2)}` | `3` (mais próximo; empates para mais infinito) |
+
+As funções recebem um argumento; `round(-2.5)` resulta em `-2`. Referências ausentes/circulares, blocos sem fechamento, divisão por zero, resultados não finitos e inteiros fora do limite seguro geram erro.
+
+### Seleções por ID e fonte mínima por grupo
+
+Uma variável pode escolher o valor pelo ID resolvido da carta. Exemplo de definição dentro de `variables`:
+
+```json
+"fonte": {
+  "default": null,
+  "cases": [
+    { "ids": "01-05,08", "value": { "auto": "min" } },
+    { "ids": ["06-07", "09-11"], "value": 2.58 }
+  ]
+}
+```
+
+Use `"font_size": "${fonte}"` nas cartas. O primeiro caso correspondente vence; sem correspondência, vale `default`, ou `null` se omitido. `value` e `default` aceitam texto, números, `null` e referências, inclusive cálculos e nomes dinâmicos. Apenas o ramo escolhido é expandido; seleções também podem definir efeitos, custo, vida e quantidade.
+
+`ids` aceita lista, texto com vírgulas ou um número. Intervalos são inclusivos: `01-05` exige largura de dois dígitos, enquanto `1-5` corresponde a IDs sem zeros. Extremos com zeros à esquerda precisam da mesma largura (`01-5` é inválido); IDs textuais são comparados literalmente. Para IDs grandes, use strings no JSON para preservar a precisão; os intervalos são comparados com `BigInt`, sem expandir listas.
+
+`{"auto":"min"}` mede a fonte automática de cada membro do grupo e aplica a menor a todos, sem arredondar a medida. Cada caso forma seu grupo. Com `--ids`, o cálculo inclui membros não selecionados e `quantity: 0` do mesmo JSON, sem carregar suas artes; somente os grupos necessários são medidos. O resultado vale para carta, exportações e prévia.
+
+Também é possível definir `"fonte": {"auto":"min"}` para um grupo único ou usar esse objeto em `default`. Esse modo só pode ocupar o valor completo de `font_size`, diretamente por referência ou aliases; não pode ser inserido em frases ou cálculos.
+
+## Fontes e aparência
+
+A descrição usa texto preto sobre fundo claro semitransparente, tingido pelo elemento. Com `font_size: null` ou campo omitido, a fonte se ajusta de **2,8 a 1,5 mm**. Um número positivo, como `2.58`, fixa o tamanho em mm, inclusive fora desse intervalo, sem redução automática. Variáveis e cálculos também funcionam: `${hp / 2}` em `font_size` resulta em `2,5 mm` para `hp = 5`.
+
+O console informa a fonte final e o modo: `automática`, `fixa` ou `mínima do grupo`. Se houver excesso, exibe ID, fonte atual e máxima recomendada, sem repetir a descrição. A recomendação é arredondada para baixo com duas casas decimais, pode ser menor que 1,5 mm e não altera a exportação. Se o espaçamento impedir qualquer encaixe, informa `indisponível`.
+
+Os controles visuais ficam em `:root`, no início de `assets/card.css`:
+
+| Controle | Ajuste |
+|---|---|
+| `--stroke-text`, `--stroke-effect`, `--stroke-archetype`, `--stroke-cost` | Contorno de nome/vida, descrição, arquétipo e custo; espessura e cor, como `0.2mm black`. |
+| `--effect-background-opacity` | Opacidade do preenchimento; atual `80%` (20% transparente). |
+| `--safe-inset`, `--effect-bottom-gap` | Margens laterais e inferior da caixa; atuais `3 mm`, com a inferior acompanhando `--safe-inset`. |
+| `--effect-separator-thickness` | Espessura do separador; atual `0.15mm`. |
+| `--effect-separator-gap` | Espaço acima e abaixo do separador; atual `0.4mm`. |
+| `--effect-separator-width`, `--effect-separator-color` | Largura e cor do separador; atuais `90%` e `black`. |
+| `effect-text { line-height: ... }` | Entrelinhas da descrição; atual `1.2`. |
+
+O separador participa do ajuste de fonte e sua largura não ultrapassa o interior da caixa. Traços menores que um pixel são suavizados; a aparência depende do DPI e do zoom. A identificação dos PDFs tem controles `LABEL_FONT_SIZE`, `LABEL_SEPARATOR`, `LABEL_LINE_HEIGHT` e `LABEL_GAP` em `src/print_pdf.py`.
+
+## Estrutura, prévia e testes
+
+| Local | Responsabilidade |
+|---|---|
+| `build.mjs`, `src/` | Comandos, resolução de dados, renderização, servidores e exportação. |
+| `template.html`, `assets/card.css` | Estrutura e aparência da carta. |
+| `src/export.mjs`, `src/units.mjs` | Medidas físicas e conversões de unidades; mantenha as medidas do CSS compatíveis com `MM`. |
+| `src/print_pdf.py` | Paginação A4 e identificação dos recortes. |
+| `cards/`, `tests/` | Decks JSON, testes e auxiliares de validação. |
+
+Sirva a raiz do projeto por HTTP para abrir `index.html` e conferir a primeira carta do Fluffusion; máscaras SVG dependem desse acesso. `--save-html` salva a carta preenchida com caminhos ajustados à saída.
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+npm test
+```
+
+Os testes cobrem variáveis, fontes, seleção de IDs, dimensões, recortes, PDFs e ciclo de vida dos servidores. Relatórios, arquivos temporários, ambientes e imagens geradas permanecem fora do Git.

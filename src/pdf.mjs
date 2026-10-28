@@ -67,6 +67,7 @@ export async function createPrintPdfs(entries, pdfDir, args) {
         return { path: entry.textPath, width: bounds.width, height: bounds.height,
           imageWidth: size.width, imageHeight: size.height,
           offsetX: bounds.left, offsetY: size.height - bounds.top - bounds.height,
+          label: { name: entry.name ?? "", archetype: entry.archetype ?? "" },
           quantity: entry.quantity };
       }),
     });
@@ -75,7 +76,8 @@ export async function createPrintPdfs(entries, pdfDir, args) {
     title: `${stem} - região inferior (${mode})`,
     output: path.join(pdfDir, `${name}_bg_text_${mode}_${args.dpi}dpi.pdf`),
     items: active.map(entry => ({ path: entry.bgTextPath,
-      width: entry.bgTextSize.width, height: entry.bgTextSize.height, quantity: entry.quantity })),
+      width: entry.bgTextSize.width, height: entry.bgTextSize.height,
+      label: { name: entry.name ?? "", archetype: entry.archetype ?? "" }, quantity: entry.quantity })),
   });
   const results = await runPdf({ jobs, margin: args.pdfMargin ?? 5, gap: args.pdfGap ?? 1 });
   for (const result of results) console.log(`✔ PDF -> ${path.relative(path.dirname(pdfDir), result.path)} | ${result.pages} página(s), ${result.copies} cópia(s), ${result.columns} coluna(s)`);

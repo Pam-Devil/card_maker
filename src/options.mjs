@@ -10,7 +10,7 @@ export const HELP = `Uso: node build.mjs cards/Fluffusion.json [opções]
   --pdf-margin <mm> Margem mínima de impressão (padrão: 5 mm)
   --pdf-gap <pt>   Espaço entre cartas (padrão: 1 pt)
   --no-description Oculta a descrição, mantendo a caixa e seu fundo
-  --text           Separa a descrição: carta com caixa vazia e PNG transparente de texto
+  --text           Exporta também um PNG transparente da descrição; mantém o texto na carta
   --bg-text        Exporta também a região inferior com fundo, descrição e bordas
   --rounded        Arredonda os cantos da imagem exportada (com ou sem --trim)
   --guides         Mostra a guia também com --trim (bleed já inclui a guia)

@@ -73,7 +73,7 @@ test("região inferior acompanha o template e preserva o texto junto de --text",
   } finally { await new Promise(resolve => server.close(resolve)); }
 });
 
-test("CLI combina --bg-text e --text preservando a carta com a caixa vazia no HTML", async ({}, info) => {
+test("CLI combina --bg-text e --text preservando a descrição na carta e no HTML", async ({}, info) => {
   const directory = info.outputPath("cards");
   await fs.mkdir(directory, { recursive: true });
   const input = path.join(directory, "input.json");
@@ -82,7 +82,7 @@ test("CLI combina --bg-text e --text preservando a carta com a caixa vazia no HT
   expect(await fs.readdir(path.join(directory, "bg_text"))).toEqual(["lower_bg_text_trim_300dpi.png"]);
   expect(await fs.readdir(path.join(directory, "text"))).toEqual(["lower_text_trim_300dpi.png"]);
   const html = await fs.readFile(path.join(directory, "html", "lower.html"), "utf8");
-  expect(html).toContain("data-separate-text");
+  expect(html).not.toContain("data-separate-text");
   expect(html).not.toContain("data-render-text");
   expect(html).not.toContain("<text-export");
 });

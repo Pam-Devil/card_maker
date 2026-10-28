@@ -89,7 +89,7 @@ export async function build(args) {
             const relativeRoot = path.relative(output.html, ROOT).split(path.sep).join("/") || ".";
             await fs.writeFile(path.join(output.html, `${name}.html`), await cardHtml(page, baseUrl, relativeRoot));
           }
-          entries.push({ imagePath, quantity: card.quantity ?? 1,
+          entries.push({ imagePath, name: card.name ?? "", archetype: card.archetype ?? "", quantity: card.quantity ?? 1,
             textPath: text ? textPath : null, textSize: text?.size, textBounds: text?.bounds,
             bgTextPath: bgText ? bgTextPath : null, bgTextSize: bgText?.size });
           const fontMode = groupFont !== undefined ? "mínima do grupo" : card.font_size == null ? "automática" : "fixa";

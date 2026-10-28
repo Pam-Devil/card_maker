@@ -8,9 +8,32 @@ from pathlib import Path
 try:
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.units import mm
+    from reportlab.pdfbase.pdfmetrics import stringWidth
     from reportlab.pdfgen import canvas
 except ImportError:
     sys.exit("Instale as dependências do PDF: python -m pip install -r requirements.txt")
+
+
+# Tipografia da identificação nos PDFs de descrições e de regiões inferiores.
+LABEL_FONT = "Helvetica"
+LABEL_FONT_SIZE = 7  # pontos; mesmo tamanho para nome, separador e arquétipo
+LABEL_LINE_HEIGHT = 8
+LABEL_GAP = 3  # pontos entre a identificação e a imagem
+LABEL_SEPARATOR = " | "
+
+
+def prepare_item(item):
+    prepared = dict(item)
+    parts = []
+    label = item.get("label") or {}
+    for field in ("name", "archetype"):
+        value = label.get(field)
+        text = " ".join(str(value).split()) if value is not None else ""
+        if text:
+            parts.append(text)
+    prepared["_label"] = LABEL_SEPARATOR.join(parts)
+    prepared["_label_height"] = LABEL_LINE_HEIGHT + LABEL_GAP if parts else 0
+    return prepared
 
 
 def layout(items, margin, gap, columns=None):
@@ -26,7 +49,8 @@ def layout(items, margin, gap, columns=None):
     pages, rows, used_h = [], [], 0
     for start in range(0, len(items), columns):
         row = items[start:start + columns]
-        height = max(item["height"] for item in row) * mm
+        # Uma faixa comum mantém as caixas da mesma linha alinhadas, mesmo sem arquétipo.
+        height = max(item["height"] for item in row) * mm + max(item.get("_label_height", 0) for item in row)
         if height > area_h + 1e-7:
             raise ValueError("A carta não cabe na altura útil da página A4")
         if rows and used_h + gap + height > area_h + 1e-7:
@@ -40,7 +64,8 @@ def layout(items, margin, gap, columns=None):
 
 
 def create_pdf(job, margin, gap):
-    items = [item for item in job["items"] for _ in range(item["quantity"])]
+    prepared = [prepare_item(item) for item in job["items"] if item["quantity"] > 0]
+    items = [item for item in prepared for _ in range(item["quantity"])]
     if not items:
         return None
     pages, columns, col_w = layout(items, margin, gap, job.get("columns"))
@@ -58,6 +83,8 @@ def create_pdf(job, margin, gap):
             origin_x = (A4[0] - grid_w) / 2
             top = (A4[1] + grid_h) / 2
             for row, row_h in rows:
+                label_h = max(item["_label_height"] for item in row)
+                image_area_h = row_h - label_h
                 for column, item in enumerate(row):
                     width, height = item["width"] * mm, item["height"] * mm
                     image_w = item.get("imageWidth", item["width"]) * mm
@@ -65,7 +92,16 @@ def create_pdf(job, margin, gap):
                     offset_x = item.get("offsetX", 0) * mm
                     offset_y = item.get("offsetY", 0) * mm
                     x = origin_x + column * (col_w + gap) + (col_w - width) / 2
-                    y = top - row_h + (row_h - height) / 2
+                    y = top - row_h + (image_area_h - height) / 2
+                    if item["_label"]:
+                        label = item["_label"]
+                        text_width = stringWidth(label, LABEL_FONT, LABEL_FONT_SIZE)
+                        # Identificações longas ficam completas em uma única linha.
+                        font_size = LABEL_FONT_SIZE * min(1, width / text_width) if text_width else LABEL_FONT_SIZE
+                        doc.saveState()
+                        doc.setFont(LABEL_FONT, font_size)
+                        doc.drawCentredString(x + width / 2, top - LABEL_FONT_SIZE, label)
+                        doc.restoreState()
                     doc.saveState()
                     if image_w != width or image_h != height or offset_x or offset_y:
                         clipping = doc.beginPath()
