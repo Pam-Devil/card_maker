@@ -9,7 +9,7 @@ import { pdfPython } from "../src/pdf.mjs";
 import { parseArgs } from "../src/options.mjs";
 
 const run = promisify(execFile);
-const card = { id: "01", name: "Prismuff", element: "caelo", cost: 1, hp: 3, atk: 0, effect: "Descrição para impressão.", quantity: 1 };
+const card = { id: "01", name: "Prismuff", archetype: "Filhote Fluffusion", element: "caelo", cost: 1, hp: 3, atk: 0, effect: "Descrição para impressão.", quantity: 1 };
 const mm = value => value * 72 / 25.4;
 async function fixture(info, cards) {
   const directory = info.outputPath("cards");
@@ -68,13 +68,13 @@ test("PDF bleed usa duas colunas e três linhas sem reduzir as cartas", async ({
 });
 
 for (const trim of [false, true]) {
-  test(`PDF de texto recorta a caixa e aproveita nove linhas: trim=${trim}`, async ({}, info) => {
+  test(`PDF de texto recorta a caixa e reserva oito linhas com identificação: trim=${trim}`, async ({}, info) => {
     const files = await fixture(info, [{ ...card, quantity: 28 }]);
     await generate(files, ["--pdf-text", "--save-html", ...(trim ? ["--trim"] : [])]);
     const pdfs = await outputFiles(files.directory, ".pdf");
     expect(pdfs).toEqual([`pdf/input_text_${trim ? "trim" : "bleed"}_300dpi.pdf`]);
     const pages = await inspect(path.join(files.directory, pdfs[0]));
-    expect(pages.map(page => page.images.length)).toEqual([27, 1]);
+    expect(pages.map(page => page.images.length)).toEqual([24, 4]);
     for (const page of pages) {
       a4(page);
       expect(page.clips).toHaveLength(page.images.length);
@@ -93,21 +93,21 @@ for (const trim of [false, true]) {
     }
     const clips = pages[0].clips;
     expect(new Set(clips.map(clip => clip[0])).size).toBe(3);
-    expect(new Set(clips.map(clip => clip[1])).size).toBe(9);
+    expect(new Set(clips.map(clip => clip[1])).size).toBe(8);
     expect(clips[1][0] - clips[0][0] - clips[0][2]).toBeCloseTo(1, 3);
-    expect(clips[0][1] - clips[3][1] - clips[3][3]).toBeCloseTo(1, 3);
+    expect(clips[0][1] - clips[3][1] - clips[3][3]).toBeCloseTo(12, 3);
     const html = await fs.readFile(path.join(files.directory, "html", "01.html"), "utf8");
     expect(html).not.toContain("data-separate-text");
   });
 }
 
-test("PDF de texto com gap zero compartilha as linhas de corte", async ({}, info) => {
+test("PDF de texto com gap zero encosta as colunas e preserva a faixa de identificação", async ({}, info) => {
   const files = await fixture(info, [{ ...card, quantity: 6 }]);
   await generate(files, ["--pdf-text", "--trim", "--pdf-gap", "0"]);
   const [page] = await inspect(path.join(files.directory, "pdf", "input_text_trim_300dpi.pdf"));
   expect(page.clips).toHaveLength(6);
   expect(page.clips[1][0] - page.clips[0][0] - page.clips[0][2]).toBeCloseTo(0, 3);
-  expect(page.clips[0][1] - page.clips[3][1] - page.clips[3][3]).toBeCloseTo(0, 3);
+  expect(page.clips[0][1] - page.clips[3][1] - page.clips[3][3]).toBeCloseTo(11, 3);
 });
 
 test("PDF segue --ids e não imprime quantity zero", async ({}, info) => {
@@ -157,17 +157,54 @@ for (const trim of [false, true]) {
     const first = pages[0].images[0], nextColumn = pages[0].images[1];
     const nextRow = pages[0].images[trim ? 3 : 2];
     expect(nextColumn[4] - first[4] - first[0]).toBeCloseTo(trim ? 0 : 1, 3);
-    expect(first[5] - nextRow[5] - nextRow[3]).toBeCloseTo(trim ? 0 : 1, 3);
+    expect(first[5] - nextRow[5] - nextRow[3]).toBeCloseTo(trim ? 11 : 12, 3);
   });
 }
 
 test("--text --bg-text --pdf gera três PDFs e respeita --ids e quantity zero", async ({}, info) => {
-  const files = await fixture(info, [{ ...card, quantity: 50 }, { ...card, id: "02", quantity: 2 }, { ...card, id: "03", quantity: 0 }]);
+  const files = await fixture(info, [{ ...card, name: "Não selecionar", quantity: 50 }, { ...card, id: "02", name: "Voltuff", archetype: "Adulto Fluffusion", quantity: 2 }, { ...card, id: "03", name: "Não imprimir", quantity: 0 }]);
   await generate(files, ["--pdf", "--text", "--bg-text", "--trim", "--ids", "02,03"]);
   const pdfs = await outputFiles(files.directory, ".pdf");
   expect(pdfs).toEqual(["pdf/input_bg_text_trim_300dpi.pdf", "pdf/input_text_trim_300dpi.pdf", "pdf/input_trim_300dpi.pdf"]);
   for (const pdf of pdfs) {
     const pages = await inspect(path.join(files.directory, pdf));
     expect(pages.map(page => page.images.length)).toEqual([2]);
+    if (pdf.includes("_text_")) {
+      expect(pages[0].labels.map(label => label.text)).toEqual(["Voltuff | Adulto Fluffusion", "Voltuff | Adulto Fluffusion"]);
+      const boxes = pages[0].clips.length ? pages[0].clips : pages[0].images.map(image => [image[4], image[5], image[0], image[3]]);
+      for (const [index, [x, y, width, height]] of boxes.entries()) {
+        for (const label of pages[0].labels.slice(index, index + 1)) {
+          expect(label.fontSize).toBe(7);
+          expect(label.x).toBeGreaterThanOrEqual(x);
+          expect(label.x).toBeLessThan(x + width);
+          expect(label.y).toBeGreaterThan(y + height);
+          expect(label.y + label.fontSize).toBeLessThan(pages[0].height - mm(5));
+        }
+      }
+    } else expect(pages[0].labels).toEqual([]);
+  }
+});
+
+
+test("identificação usa linha única, ajusta nomes longos e aceita arquétipo ausente", async ({}, info) => {
+  const longName = "Família de uma carta com um nome bastante longo para caber em uma linha";
+  const files = await fixture(info, [
+    { ...card, name: "Ação & Reação <Carta>", archetype: null },
+    { ...card, id: "02", name: longName, archetype: "Arquétipo & União <Especial>" },
+  ]);
+  await generate(files, ["--pdf", "--text", "--bg-text", "--trim"]);
+  for (const kind of ["text", "bg_text"]) {
+    const [page] = await inspect(path.join(files.directory, "pdf", `input_${kind}_trim_300dpi.pdf`));
+    expect(page.text).toContain("Ação & Reação <Carta>");
+    expect(page.text.replace(/\s+/g, " ")).toContain(longName);
+    expect(page.text).toContain("Arquétipo & União <Especial>");
+    expect(page.text).not.toContain("null");
+    expect(page.labels.map(label => label.text)).toEqual(["Ação & Reação <Carta>", `${longName} | Arquétipo & União <Especial>`]);
+    expect(page.labels[0].fontSize).toBe(7);
+    expect(page.labels[1].fontSize).toBeLessThan(7);
+    expect(page.labels[1].fontSize).toBeGreaterThan(0);
+    const boxes = page.clips.length ? page.clips : page.images.map(image => [image[4], image[5], image[0], image[3]]);
+    expect(boxes[0][1]).toBeCloseTo(boxes[1][1], 3);
+    expect(page.labels.every(label => label.y > boxes[0][1] + boxes[0][3])).toBe(true);
   }
 });

@@ -37,7 +37,7 @@ export async function renderCard(page, baseUrl, templateName, card, opts) {
   await page.goto(`${baseUrl}/${templateName}`, { waitUntil: "load" });
   const art = card.art ? new URL(card.art.replaceAll("\\", "/"), `${baseUrl}/`).href : null;
   await page.evaluate(applyCard, { card, art, guides: !opts.trim || !!opts.guides });
-  await page.locator("card-data").evaluate((el, separate) => el.toggleAttribute("data-separate-text", separate), !!(opts.text || opts.noDescription));
+  await page.locator("card-data").evaluate((el, separate) => el.toggleAttribute("data-separate-text", separate), !!opts.noDescription);
   // Captura a área solicitada diretamente: o recorte não depende de arredondamentos da sangria.
   const box = await documentBox(page.locator(opts.trim ? ".trim" : ".card-bleed"));
   if (!box) throw new Error("Template sem área de exportação visível");

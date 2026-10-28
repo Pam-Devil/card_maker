@@ -20,5 +20,14 @@ for page in PdfReader(sys.argv[1]).pages:
             images.append(matrix[:])
         elif operator == b"re":
             clips.append([float(value) for value in operands])
-    result.append({"width": float(page.mediabox.width), "height": float(page.mediabox.height), "images": images, "clips": clips})
+    labels = []
+
+    def visit_text(text, cm, tm, font, size):
+        if text.strip():
+            labels.append({"text": text.strip(), "x": cm[0]*tm[4]+cm[2]*tm[5]+cm[4],
+                           "y": cm[1]*tm[4]+cm[3]*tm[5]+cm[5], "fontSize": float(size)})
+
+    text = page.extract_text(visitor_text=visit_text)
+    result.append({"width": float(page.mediabox.width), "height": float(page.mediabox.height),
+                   "images": images, "clips": clips, "text": text, "labels": labels})
 print(json.dumps(result))
