@@ -39,7 +39,9 @@
     try {
       const sizes = await resolveGroupFontSizes(cards, async card => {
         await applyCard({ card, art: null });
-        return parseFloat(document.querySelector("effect-text").style.fontSize);
+        const effect = document.querySelector("effect-text");
+        if (!effect) throw new Error("Template sem effect-text para medir a fonte");
+        return parseFloat(effect.style.fontSize);
       });
       const first = cards[0];
       const card = sizes.has(first) ? { ...first, font_size: sizes.get(first) } : first;

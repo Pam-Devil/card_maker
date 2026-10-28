@@ -1,5 +1,16 @@
 import { applyCard } from "./layout.mjs";
 import { resolveGroupFontSizes } from "./font-groups.mjs";
+import { pxToMm } from "./units.mjs";
+
+// Com fullPage, clip usa coordenadas da página, inclusive fora do viewport.
+async function documentBox(locator) {
+  return locator.evaluate(element => {
+    const box = element.getBoundingClientRect();
+    if (box.width <= 0 || box.height <= 0) return null;
+    return { x: box.left + window.scrollX, y: box.top + window.scrollY,
+      width: box.width, height: box.height };
+  });
+}
 
 // A calibração não carrega artes de cartas fora de --ids.
 export async function resolveCardFontGroups(context, baseUrl, templateName, cards, selectedIds = null) {
@@ -10,11 +21,14 @@ export async function resolveCardFontGroups(context, baseUrl, templateName, card
         probe = await context.newPage();
         await probe.goto(`${baseUrl}/${templateName}`, { waitUntil: "load" });
       }
-      await probe.evaluate(applyCard, { card, art: null });
-      return probe.evaluate(() => {
+      return probe.evaluate(async ({ card, layoutUrl }) => {
+        const { applyCard } = await import(layoutUrl);
+        await applyCard({ card, art: null });
         const effect = document.querySelector("effect-text");
-        return effect ? parseFloat(effect.style.fontSize) : null;
-      });
+        if (!effect) throw new Error("Template sem effect-text para medir a fonte");
+        // applyCard define a fonte inline em mm; não depende de seu retorno.
+        return parseFloat(effect.style.fontSize);
+      }, { card, layoutUrl: `${baseUrl}/src/layout.mjs` });
     }, { selectedIds });
   } finally { await probe?.close(); }
 }
@@ -25,9 +39,9 @@ export async function renderCard(page, baseUrl, templateName, card, opts) {
   await page.evaluate(applyCard, { card, art, guides: !opts.trim || !!opts.guides });
   await page.locator("card-data").evaluate((el, separate) => el.toggleAttribute("data-separate-text", separate), !!(opts.text || opts.noDescription));
   // Captura a área solicitada diretamente: o recorte não depende de arredondamentos da sangria.
-  const box = await page.locator(opts.trim ? ".trim" : ".card-bleed").boundingBox();
+  const box = await documentBox(page.locator(opts.trim ? ".trim" : ".card-bleed"));
   if (!box) throw new Error("Template sem área de exportação visível");
-  return page.screenshot({ clip: box, omitBackground: false });
+  return page.screenshot({ clip: box, fullPage: true, omitBackground: false });
 }
 
 // A altura acompanha a caixa e o espaço até a borda inferior da área exportada.
@@ -54,17 +68,22 @@ export async function renderText(page, opts) {
       data.setAttribute("data-render-text", "");
       const stageBox = stage.getBoundingClientRect();
       const border = stage.querySelector("effect-box").getBoundingClientRect();
-      const mm = px => px * 25.4 / 96;
+      // Retorna pixels CSS; a conversão compartilhada ocorre fora de page.evaluate.
       return {
-        size: { width: mm(cardBox.width), height: mm(height) },
-        bounds: { left: mm(border.left - stageBox.left), top: mm(border.top - stageBox.top),
-          width: mm(border.width), height: mm(border.height) },
+        size: { width: cardBox.width, height },
+        bounds: { left: border.left - stageBox.left, top: border.top - stageBox.top,
+          width: border.width, height: border.height },
       };
     }, { trim: !!opts.trim });
     backgroundStyle = await page.addStyleTag({ content: "html, body { background: transparent !important; }" });
-    const box = await page.locator("text-export").boundingBox();
-    const png = await page.screenshot({ clip: box, omitBackground: true });
-    return { png, ...geometry };
+    const box = await documentBox(page.locator("text-export"));
+    if (!box) throw new Error("Template sem área de exportação de texto visível (--text)");
+    const png = await page.screenshot({ clip: box, fullPage: true, omitBackground: true });
+    return {
+      png,
+      size: { width: pxToMm(geometry.size.width), height: pxToMm(geometry.size.height) },
+      bounds: Object.fromEntries(Object.entries(geometry.bounds).map(([key, value]) => [key, pxToMm(value)])),
+    };
   } finally {
     await backgroundStyle?.evaluate(el => el.remove());
     await page.evaluate(() => {
@@ -86,14 +105,15 @@ export async function renderBgText(page, opts) {
     const gap = cardBox.bottom - textBox.bottom;
     const top = textBox.top - gap;
     if (gap < 0 || top < cardBox.top) throw new Error("A região inferior ultrapassa a área da carta");
-    const clip = { x: cardBox.left, y: top, width: cardBox.width, height: cardBox.bottom - top };
+    const clip = { x: cardBox.left + window.scrollX, y: top + window.scrollY,
+      width: cardBox.width, height: cardBox.bottom - top };
     const separate = data.hasAttribute("data-separate-text");
     data.removeAttribute("data-separate-text");
-    return { clip, separate, size: { width: clip.width * 25.4 / 96, height: clip.height * 25.4 / 96 } };
+    return { clip, separate };
   }, { trim: !!opts.trim });
   try {
-    const png = await page.screenshot({ clip: geometry.clip, omitBackground: false });
-    return { png, size: geometry.size };
+    const png = await page.screenshot({ clip: geometry.clip, fullPage: true, omitBackground: false });
+    return { png, size: { width: pxToMm(geometry.clip.width), height: pxToMm(geometry.clip.height) } };
   } finally {
     await page.locator("card-data").evaluate((el, separate) => el.toggleAttribute("data-separate-text", separate), geometry.separate);
   }

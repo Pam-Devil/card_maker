@@ -238,7 +238,7 @@ Dentro de `${...}`, `name`, `element`, `hp` e `archetype` referenciam os atribut
 }
 ```
 
-A vida calculada é `5` e a descrição é `Prismuff (caelo): Recupero 2 de vida.` São aceitos `+`, `-`, `*`, `/`, `%`, sinais unários e parênteses. Variáveis usadas em cálculos devem ser números. Não há execução de JavaScript, acesso a objetos ou avaliação de código no JSON.
+A vida calculada é `5` e a descrição é `Prismuff (caelo): Recupero 2 de vida.` São aceitos `+`, `-`, `*`, `/`, `%`, sinais unários e parênteses. Cálculos aceitam números e strings numéricas decimais, como `"2"`, `"2.58"` e `"2e1"`. O campo `hp` também converte strings numéricas antes do truncamento: `"hp": "5.9"` resulta em `5`, e `${hp / 2}` resulta em `2`. Custos textuais como `"X"`, `"?"` e `"-"` continuam sendo texto e geram erro se usados em cálculos. Strings vazias, `null`, unidades como `"2mm"` e valores não finitos não são convertidos em números; referências textuais fora dos cálculos preservam seu conteúdo. Não há execução de JavaScript, acesso a objetos ou avaliação de código no JSON.
 
 Exceto na resolução de `font_size`, valores numéricos das variáveis, `hp` numérico e o resultado de cada `${...}` são convertidos para inteiros com `trunc` por padrão (descarta a parte decimal, inclusive para negativos). As frações intermediárias de uma mesma expressão são preservadas: `${(hp / 2) * 2}` resulta em `5` quando `hp` é `5`. Já uma variável `half` declarada como `"${hp / 2}"` vale `2` antes de ser usada em outro cálculo.
 

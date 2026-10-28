@@ -1,7 +1,9 @@
 import sharp from "sharp";
+import { mmToPx } from "./units.mjs";
+
+export { mmToPx } from "./units.mjs";
 
 export const MM = Object.freeze({ bleedW: 69, bleedH: 94, trimW: 63, trimH: 88, bleedMargin: 3, radius: 6 });
-export const mmToPx = (mm, dpi) => Math.round(mm / 25.4 * dpi);
 
 export async function exportPng(png, destination, opts, size = {}) {
   const width = mmToPx(size.width ?? (opts.trim ? MM.trimW : MM.bleedW), opts.dpi);

@@ -21,7 +21,14 @@ async function runPdf(manifest) {
       if (error) reject(new Error(stderr.trim() || `Não foi possível executar o gerador de PDF: ${error.message}`));
       else {
         try { resolve(JSON.parse(stdout)); }
-        catch { reject(new Error("Resposta inválida do gerador de PDF")); }
+        catch (cause) {
+          const excerpt = value => {
+            const text = value.trim();
+            if (!text) return "(vazio)";
+            return text.length > 1000 ? `${text.slice(0, 1000)}… [truncado]` : text;
+          };
+          reject(new Error(`Resposta inválida do gerador de PDF\nstdout: ${excerpt(stdout)}\nstderr: ${excerpt(stderr)}`, { cause }));
+        }
       }
     });
     child.stdin.on("error", () => {}); // O erro de execução é informado pelo callback acima.
@@ -50,7 +57,12 @@ export async function createPrintPdfs(entries, pdfDir, args) {
     jobs.push({
       title: `${stem} - descrições`, columns: 3,
       output: path.join(pdfDir, `${name}_text_${mode}_${args.dpi}dpi.pdf`),
-      items: active.map(entry => {
+      items: active.map((entry, index) => {
+        const missing = ["textPath", "textSize", "textBounds"].filter(key => !entry[key]);
+        if (missing.length) {
+          const label = entry.imagePath ? path.basename(entry.imagePath) : `#${index + 1}`;
+          throw new Error(`PDF de descrições: exportação de texto incompleta para ${label} (faltam ${missing.join(", ")}). --pdf-text ou --text com --pdf requerem a exportação de texto concluída com sucesso.`);
+        }
         const { textSize: size, textBounds: bounds } = entry;
         return { path: entry.textPath, width: bounds.width, height: bounds.height,
           imageWidth: size.width, imageHeight: size.height,
