@@ -1,181 +1,248 @@
 {
   "variables": {
-    "archetype": "Fluffusion",
-    "P_cost": 1,
-    "A_cost": 2,
-    "F_cost": "?",
-    "P_hp": 2,
-    "A_hp": 3,
-    "F_hp": 5,
-    "P_effect": "Quando sou eliminado: Posso buscar um Adulto Fluffusion do meu elemento no seu baralho, revelá-lo e trazê-lo à sua mão.\n(0-En) Esforço (Único): No seu turno, se eu estiver em campo, posso sofrer 1 de dano para você ganhar 1 de energia.\n(1-En) União Fluffusion: Envie-me da sua mão ou do seu campo ao backstage com um Adulto Fluffusion do meu elemento do seu campo para invocar a Família correspondente do seu baralho.",
-    "A_effect": "Ao ser invocado: Pagando 1 de energia, posso pôr uma carta da mão no fundo do seu baralho para trazer à mão um Filhote Fluffusion do meu elemento do backstage ou, pagando 1 de energia, do meu baralho.",
-    "F_effect": "Restrição: Sou invocada apenas por União ${archetype}.\nRetorno: Quando sou eliminada, sou embaralhada no baralho do meu dono em vez de ir ao backstage.\nQuando sou invocada, posso buscar um Adulto Fluffusion no meu baralho, revelá-lo e trazê-lo à mão."
+    "quantity": {
+      "cases": [
+        { "ids": "01-05", "value": 1 },
+        { "ids": "06-10", "value": 1 },
+        { "ids": "11-15", "value": 1 }
+      ]
+    },
+    "font_size": null,
+    "side_archetype": {
+      "cases": [
+        { "ids": "01-05", "value": "Filhote" },
+        { "ids": "06-10", "value": "Adulto" },
+        { "ids": "11-15", "value": "Família" }
+      ]
+    },
+    "main_archetype": "Fluffusion",
+    "name_cryo": "Furfluff",
+    "name_electro": "Voltuff",
+    "name_anemo": "Wispluff",
+    "name_caelo": "Prismuff",
+    "name_abysso": "Nebluff",
+    "cost": {
+      "cases": [
+        { "ids": "01-05", "value": 1 },
+        { "ids": "06-10", "value": 2 },
+        { "ids": "11-15", "value": "?" }
+      ]
+    },
+    "hp": {
+      "cases": [
+        { "ids": "01-05", "value": 2 },
+        { "ids": "06-10", "value": 3 },
+        { "ids": "11-15", "value": 5 }
+      ]
+    },
+    "effect": {
+      "cases": [
+        { "ids": "01-05", "value": "Quando vou ao backstage: Posso revelar e trazer à mão um Adulto ${name} do seu deck.\n(1-HP) Vire-me: aplico 2 ${element}.\n(3-En) União ${main_archetype} [Mão/Campo]: Envie a mim e  um Adulto ${name} do seu campo ao backstage para invocar a Família ${name} do seu deck no lugar dele. Ao invocá-la, posso revelar e trazer à mão um Filhote ${main_archetype} do seu deck." },
+        { "ids": "06-10", "value": "Passivo: Meu efeito de cura não custa vida se o alvo for um Filhote ${name} adjacente a mim.\n(1-HP) Vire-me: Curo um Filhote ${main_archetype} do seu campo em 1 de vida, até sua vida máxima.\n(1-En) Quando invocado: Posso revelar e trazer à mão um Filhote ${name} do seu deck ou do backstage.\n(2-En) Vire-me: Aplico 2 ${element}." },
+        { "ids": "11-15", "value": "Passivo: Invocada apenas por União ${main_archetype}. Ao sair da posse do meu dono, volto ao deck dele. Cada jogador pode invocar até 1 Família por turno.\n(1-En) Vire-me: Aplico 2 ${element}.\nEmbaralhe-me no deck [Mão] ou (1-En) Vire-me: ${effect_${element}}" }
+      ]
+    },
+    "effect_cryo": "Se um ${main_archetype} aliado inativo tiver cryo pendente, posso remover esse token para curá-lo em 2 de vida.",
+    "effect_electro": "Se um ${main_archetype} aliado inativo tiver electro pendente e puder ser reativado, posso remover esse token para ativá-lo e deixá-lo exausto.",
+    "effect_anemo": "Posso mover uma unidade para um espaço adjacente vazio. Pago 1 energia extra se for adversária e 1 se houver Ruptura no destino.",
+    "effect_caelo": "Se houver no backstage um Filhote e um Adulto ${main_archetype} do mesmo elemento, posso devolver ambos ao seu deck.",
+    "effect_abysso": "Se houver no backstage um Adulto ${main_archetype} do mesmo elemento de um Filhote na sua mão, posso descartar o Filhote e recuperar o Adulto."
   },
   "cards": [
     {
       "id": "01",
-      "name": "Flurruff",
-      "archetype": "Filhote ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "cryo",
-      "cost": "${P_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${P_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/P-Cryo.png",
-      "effect": "${P_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "02",
-      "name": "Voltuff",
-      "archetype": "Filhote ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "electro",
-      "cost": "${P_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${P_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/P-Electro.png",
-      "effect": "${P_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "03",
-      "name": "Wispluff",
-      "archetype": "Filhote ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "anemo",
-      "cost": "${P_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${P_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/P-Anemo.png",
-      "effect": "${P_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "04",
-      "name": "Prismuff",
-      "archetype": "Filhote ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "caelo",
-      "cost": "${P_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${P_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/P-Caelo.png",
-      "effect": "${P_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "05",
-      "name": "Nebluff",
-      "archetype": "Filhote ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "abysso",
-      "cost": "${P_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${P_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/P-Abysso.png",
-      "effect": "${P_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "06",
-      "name": "Flurruff",
-      "archetype": "Adulto ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "cryo",
-      "cost": "${A_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${A_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/A-Cryo.png",
-      "effect": "${A_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "07",
-      "name": "Voltuff",
-      "archetype": "Adulto ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "electro",
-      "cost": "${A_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${A_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/A-Electro.png",
-      "effect": "${A_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "08",
-      "name": "Wispluff",
-      "archetype": "Adulto ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "anemo",
-      "cost": "${A_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${A_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/A-Anemo.png",
-      "effect": "${A_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "09",
-      "name": "Prismuff",
-      "archetype": "Adulto ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "caelo",
-      "cost": "${A_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${A_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/A-Caelo.png",
-      "effect": "${A_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "10",
-      "name": "Nebluff",
-      "archetype": "Adulto ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "abysso",
-      "cost": "${A_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${A_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/A-Abysso.png",
-      "effect": "${A_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "11",
-      "name": "Flurruff",
-      "archetype": "Família ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "cryo",
-      "cost": "${F_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${F_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/F-Cryo.png",
-      "effect": "${F_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "12",
-      "name": "Voltuff",
-      "archetype": "Família ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "electro",
-      "cost": "${F_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${F_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/F-Electro.png",
-      "effect": "${F_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "13",
-      "name": "Wispluff",
-      "archetype": "Família ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "anemo",
-      "cost": "${F_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${F_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/F-Anemo.png",
-      "effect": "${F_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "14",
-      "name": "Prismuff",
-      "archetype": "Família ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "caelo",
-      "cost": "${F_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${F_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/F-Caelo.png",
-      "effect": "${F_effect}"
+      "effect": "${effect}"
     },
     {
       "id": "15",
-      "name": "Nebluff",
-      "archetype": "Família ${archetype}",
+      "quantity": "${quantity}",
+      "font_size": "${font_size}",
+      "name": "${name_${element}}",
+      "archetype": "${side_archetype} ${main_archetype}",
       "element": "abysso",
-      "cost": "${F_cost}",
+      "cost": "${cost}",
       "atk": 0,
-      "hp": "${F_hp}",
+      "hp": "${hp}",
       "art": "http://localhost:8000/F-Abysso.png",
-      "effect": "${F_effect}"
+      "effect": "${effect}"
     }
   ]
 }

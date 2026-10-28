@@ -15,3 +15,9 @@ node_modules/
 # Cartas geradas
 /out/
 /output/
+/tmp/
+
+# Ambiente Python e intermediários
+/.venv/
+/tmp/pdfs/
+__pycache__/

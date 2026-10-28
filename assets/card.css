@@ -5,11 +5,19 @@
   --stroke-effect: 0.04mm black;
   --stroke-archetype: 0.2mm white;
   --stroke-cost: 0.1mm white;
-  --effect-background-opacity: 70%;
+  --effect-background-opacity: 80%;
+  /* Separador da descrição: uma linha contendo apenas --- no JSON. */
+  --effect-separator-thickness: 0.15mm;
+  --effect-separator-gap: 0.4mm; /* Espaço acima e abaixo do traço. */
+  --effect-separator-width: 90%;
+  --effect-separator-color: black;
 
   --trim-width: 63mm;
   --trim-height: 88mm;
   --bleed: 3mm;
+  --safe-inset: 3mm;
+  /* Distância da borda inferior da caixa de texto até a borda do trim. */
+  --effect-bottom-gap: var(--safe-inset);
   --radius: 6mm;
   --gold: linear-gradient(135deg, #fff4b0, #d4af37 20%, #78500b 40%, #ffe78a 55%, #b8860b 70%, #fff0a0 85%, #a87915);
   --frame-gold: linear-gradient(180deg, #fff4b0, #ead78a 5%, #d4af37 10%, #a98125 15%, #78500b 20%, #a06e18 25%, #c89332 30%, #e3bd5c 35%, #ffe88a 40%, transparent 55%);
@@ -94,7 +102,7 @@ carta {
 card-data[data-guides] carta { outline: 0.8px solid rgba(0, 0, 0, 0.6); }
 bordinha, safe-area { position: absolute; border-radius: var(--radius); }
 bordinha { inset: 1.5mm; }
-safe-area { inset: 3mm; }
+safe-area { inset: var(--safe-inset); }
 bordinha::before, safe-area::before, effect-box::before {
   content: "";
   position: absolute;
@@ -223,10 +231,10 @@ hp span {
 }
 effect {
   position: absolute;
-  bottom: -1.3mm;
+  bottom: calc(var(--effect-bottom-gap) - var(--safe-inset));
   left: 0;
   transform: translateX(-50%);
-  width: 57mm;
+  width: calc(var(--trim-width) - 2 * var(--safe-inset));
   height: 31mm;
 }
 effect-box, effect-text {
@@ -250,6 +258,32 @@ effect-text {
   white-space: pre-wrap;
   font-size: 2.8mm;
   line-height: 1.2;
+}
+
+effect-text > .effect-section { display: block; }
+effect-text > .effect-separator {
+  position: relative;
+  box-sizing: content-box;
+  width: var(--effect-separator-width);
+  max-width: 100%;
+  height: var(--effect-separator-thickness);
+  padding: 0;
+  margin: var(--effect-separator-gap) auto;
+  border: 0;
+  background: none;
+  overflow: visible;
+}
+effect-text > .effect-separator::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--effect-separator-color);
+  /* Escala uma base de 1 px para evitar o arredondamento de fundos muito finos. */
+  transform: translateY(-50%) scaleY(calc(var(--effect-separator-thickness) / 1px));
+  pointer-events: none;
 }
 
 /* Exportação separada da descrição (--text). */

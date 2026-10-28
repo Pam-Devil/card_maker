@@ -1,6 +1,8 @@
 [
   {
     "id": "01",
+    "quantity": 1,
+    "font_size": null,
     "name": "Figurinista",
     "archetype": "Trupe Errante",
     "element": "abysso",
@@ -13,6 +15,8 @@
   },
   {
     "id": "02",
+    "quantity": 1,
+    "font_size": null,
     "name": "Assistente",
     "archetype": "Trupe Errante",
     "element": "geo",
@@ -25,6 +29,8 @@
   },
   {
     "id": "03",
+    "quantity": 1,
+    "font_size": null,
     "name": "Marionetista",
     "archetype": "Trupe Errante",
     "element": "electro",
@@ -37,6 +43,8 @@
   },
   {
     "id": "04",
+    "quantity": 1,
+    "font_size": null,
     "name": "Estrela",
     "archetype": "Trupe Errante",
     "element": "geo",
@@ -49,6 +57,8 @@
   },
   {
     "id": "05",
+    "quantity": 1,
+    "font_size": null,
     "name": "Duelista",
     "archetype": "Trupe Errante",
     "element": "pyro",
@@ -61,6 +71,8 @@
   },
   {
     "id": "06",
+    "quantity": 1,
+    "font_size": null,
     "name": "Regente",
     "archetype": "Trupe Errante",
     "element": "abysso",
@@ -73,6 +85,8 @@
   },
   {
     "id": "07",
+    "quantity": 1,
+    "font_size": null,
     "name": "Executora",
     "archetype": "Trupe Errante",
     "element": "pyro",
@@ -85,6 +99,8 @@
   },
   {
     "id": "08",
+    "quantity": 1,
+    "font_size": null,
     "name": "Cantora",
     "archetype": "Trupe Errante",
     "element": "electro",
@@ -97,6 +113,8 @@
   },
   {
     "id": "09",
+    "quantity": 1,
+    "font_size": null,
     "name": "Tania",
     "archetype": "Estrela Mishelan",
     "element": "caelo",
@@ -109,6 +127,8 @@
   },
   {
     "id": "10",
+    "quantity": 1,
+    "font_size": null,
     "name": "Talia",
     "archetype": "Estrela Mishelan",
     "element": "caelo",
@@ -121,6 +141,8 @@
   },
   {
     "id": "11",
+    "quantity": 1,
+    "font_size": null,
     "name": "Nadia",
     "archetype": "Estrela Mishelan",
     "element": "caelo",
@@ -133,6 +155,8 @@
   },
   {
     "id": "12",
+    "quantity": 1,
+    "font_size": null,
     "name": "Tabita",
     "archetype": "Estrela Mishelan",
     "element": "caelo",
@@ -145,6 +169,8 @@
   },
   {
     "id": "13",
+    "quantity": 1,
+    "font_size": null,
     "name": "Tania",
     "archetype": "Realidade Mishelan",
     "element": "caelo",
@@ -157,6 +183,8 @@
   },
   {
     "id": "14",
+    "quantity": 1,
+    "font_size": null,
     "name": "Tabita",
     "archetype": "Realidade Mishelan",
     "element": "caelo",
@@ -169,6 +197,8 @@
   },
   {
     "id": "15",
+    "quantity": 1,
+    "font_size": null,
     "name": "Talia",
     "archetype": "Realidade Mishelan",
     "element": "caelo",
@@ -181,6 +211,8 @@
   },
   {
     "id": "16",
+    "quantity": 1,
+    "font_size": null,
     "name": "Asper",
     "archetype": "LiveWire",
     "element": "hydro",
@@ -193,6 +225,8 @@
   },
   {
     "id": "17",
+    "quantity": 1,
+    "font_size": null,
     "name": "Roadie",
     "archetype": "LiveWire",
     "element": "hydro",
@@ -205,6 +239,8 @@
   },
   {
     "id": "18",
+    "quantity": 1,
+    "font_size": null,
     "name": "Nix",
     "archetype": "LiveWire",
     "element": "hydro",
@@ -217,6 +253,8 @@
   },
   {
     "id": "19",
+    "quantity": 1,
+    "font_size": null,
     "name": "RIOT",
     "archetype": "LiveWire",
     "element": "hydro",
@@ -229,6 +267,8 @@
   },
   {
     "id": "20",
+    "quantity": 1,
+    "font_size": null,
     "name": "Poppy",
     "archetype": "LiveWire",
     "element": "hydro",
@@ -241,6 +281,8 @@
   },
   {
     "id": "21",
+    "quantity": 1,
+    "font_size": null,
     "name": "Roxy",
     "archetype": "LiveWire",
     "element": "hydro",
@@ -253,6 +295,8 @@
   },
   {
     "id": "22",
+    "quantity": 1,
+    "font_size": null,
     "name": "Vicky",
     "archetype": "LiveWire",
     "element": "hydro",
@@ -265,6 +309,8 @@
   },
   {
     "id": "23",
+    "quantity": 1,
+    "font_size": null,
     "name": "Mika",
     "archetype": "LiveWire",
     "element": "hydro",
@@ -277,6 +323,8 @@
   },
   {
     "id": "24",
+    "quantity": 1,
+    "font_size": null,
     "name": "Greta",
     "archetype": "LiveWire",
     "element": "hydro",
@@ -289,6 +337,8 @@
   },
   {
     "id": "25",
+    "quantity": 1,
+    "font_size": null,
     "name": "Lumine",
     "archetype": "LiveWire",
     "element": "hydro",
@@ -301,6 +351,8 @@
   },
   {
     "id": "26",
+    "quantity": 1,
+    "font_size": null,
     "name": "Cereja",
     "archetype": "Empregada de Frutella",
     "element": "pyro",
@@ -313,6 +365,8 @@
   },
   {
     "id": "27",
+    "quantity": 1,
+    "font_size": null,
     "name": "Pinnelope",
     "archetype": "Empregada de Frutella",
     "element": "geo",
@@ -325,6 +379,8 @@
   },
   {
     "id": "28",
+    "quantity": 1,
+    "font_size": null,
     "name": "Ulvida",
     "archetype": "Empregada de Frutella",
     "element": "electro",
@@ -337,6 +393,8 @@
   },
   {
     "id": "29",
+    "quantity": 1,
+    "font_size": null,
     "name": "Morgiana",
     "archetype": "Empregada de Frutella",
     "element": "pyro",
@@ -349,6 +407,8 @@
   },
   {
     "id": "30",
+    "quantity": 1,
+    "font_size": null,
     "name": "Milena",
     "archetype": "Empregada de Frutella",
     "element": "anemo",
@@ -361,6 +421,8 @@
   },
   {
     "id": "31",
+    "quantity": 1,
+    "font_size": null,
     "name": "Marciera",
     "archetype": "Empregada de Frutella",
     "element": "pyro",
@@ -373,6 +435,8 @@
   },
   {
     "id": "32",
+    "quantity": 1,
+    "font_size": null,
     "name": "Cereja",
     "archetype": "Bandida de Frutella",
     "element": "pyro",
@@ -385,6 +449,8 @@
   },
   {
     "id": "33",
+    "quantity": 1,
+    "font_size": null,
     "name": "Pinnelope",
     "archetype": "Bandida de Frutella",
     "element": "geo",
@@ -397,6 +463,8 @@
   },
   {
     "id": "34",
+    "quantity": 1,
+    "font_size": null,
     "name": "Ulvida",
     "archetype": "Bandida de Frutella",
     "element": "electro",
@@ -409,6 +477,8 @@
   },
   {
     "id": "35",
+    "quantity": 1,
+    "font_size": null,
     "name": "Morgiana",
     "archetype": "Bandida de Frutella",
     "element": "pyro",
@@ -421,6 +491,8 @@
   },
   {
     "id": "36",
+    "quantity": 1,
+    "font_size": null,
     "name": "Marciera",
     "archetype": "Bandida de Frutella",
     "element": "pyro",
@@ -433,6 +505,8 @@
   },
   {
     "id": "37",
+    "quantity": 1,
+    "font_size": null,
     "name": "Milena",
     "archetype": "Bandida de Frutella",
     "element": "hydro",

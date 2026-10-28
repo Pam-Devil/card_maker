@@ -16,7 +16,33 @@ export async function applyCard({ card, art, guides = false }) {
   const hp = el.querySelector("hp span");
   const cost = el.querySelector("cost span");
   if (name) name.textContent = card.name ?? "";
-  if (effect) effect.textContent = card.effect ?? "";
+  if (effect) {
+    const text = String(card.effect ?? "");
+    const lines = text.split(/\r\n|\n|\r/);
+    if (!lines.some(line => line.trim() === "---")) effect.textContent = text;
+    else {
+      const nodes = [];
+      let section = [];
+      function flushSection() {
+        if (!section.length) return;
+        const block = document.createElement("span");
+        block.className = "effect-section";
+        block.textContent = section.join("\n");
+        nodes.push(block);
+        section = [];
+      }
+      for (const line of lines) {
+        if (line.trim() === "---") {
+          flushSection();
+          const separator = document.createElement("hr");
+          separator.className = "effect-separator";
+          nodes.push(separator);
+        } else section.push(line);
+      }
+      flushSection();
+      effect.replaceChildren(...nodes);
+    }
+  }
   if (hp) hp.textContent = String(card.hp);
   if (cost) cost.textContent = String(card.cost);
 
@@ -28,17 +54,44 @@ export async function applyCard({ card, art, guides = false }) {
     image.src = art;
   });
 
+  function textFits(element, { mode = "both", target = element } = {}) {
+    const width = target.scrollWidth <= target.clientWidth + 0.5;
+    const height = target.scrollHeight <= target.clientHeight + 0.5;
+    return mode === "width" ? width : width && height;
+  }
+
+  function warnOverflow(element, current, options = {}) {
+    const original = element.style.fontSize;
+    let recommended = "indisponível";
+    function fits(size) {
+      element.style.fontSize = `${size}mm`;
+      return textFits(element, options);
+    }
+    try {
+      // Mede também abaixo do mínimo automático, sem alterar a fonte exportada.
+      let low = 0.01, high = current;
+      if (high >= low && fits(low)) {
+        while (high - low > 0.001) {
+          const mid = (low + high) / 2;
+          if (fits(mid)) low = mid;
+          else high = mid;
+        }
+        // Arredonda para baixo para que o valor informado ainda caiba na caixa.
+        recommended = `${(Math.floor(low * 100) / 100).toFixed(2)} mm`;
+      }
+    } finally { element.style.fontSize = original; }
+    console.warn(`[ID ${card.id ?? "sem ID"}] Texto excede a caixa | fonte atual: ${current.toFixed(2)} mm | fonte máxima recomendada: ${recommended}`);
+  }
+
   function fitText(element, { max, min, mode = "both", target = element }) {
     if (!element) return;
     function fits(size) {
       element.style.fontSize = `${size}mm`;
-      const width = target.scrollWidth <= target.clientWidth + 0.5;
-      const height = target.scrollHeight <= target.clientHeight + 0.5;
-      return mode === "width" ? width : width && height;
+      return textFits(element, { mode, target });
     }
     if (fits(max)) return;
     if (!fits(min)) {
-      console.warn(`Texto excede a caixa na fonte mínima: ${element.textContent}`);
+      warnOverflow(element, min, { mode, target });
       return;
     }
     let low = min, high = max;
@@ -51,7 +104,10 @@ export async function applyCard({ card, art, guides = false }) {
   }
 
   fitText(name, { max: 4, min: 2, mode: "width", target: name?.parentElement });
-  fitText(effect, { max: 2.8, min: 1.5 });
+  if (effect && card.font_size != null) {
+    effect.style.fontSize = `${card.font_size}mm`;
+    if (!textFits(effect)) warnOverflow(effect, card.font_size);
+  } else fitText(effect, { max: 2.8, min: 1.5 });
   fitText(hp, { max: 5.4, min: 1.5, mode: "width" });
   fitText(cost, { max: 9, min: 1.5 });
   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));

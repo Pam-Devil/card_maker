@@ -31,9 +31,20 @@
   <script type="module">
     import { applyCard } from "./src/layout.mjs";
     import { parseDeck } from "./src/cards.mjs";
+    import { resolveGroupFontSizes } from "./src/font-groups.mjs";
     const response = await fetch("./cards/Fluffusion.json");
     const cards = parseDeck(await response.json());
-    await applyCard({ card: cards[0], art: cards[0].art ? new URL(cards[0].art, location.href).href : null, guides: true });
+    const preview = document.querySelector("card-data");
+    preview.style.visibility = "hidden";
+    try {
+      const sizes = await resolveGroupFontSizes(cards, async card => {
+        await applyCard({ card, art: null });
+        return parseFloat(document.querySelector("effect-text").style.fontSize);
+      });
+      const first = cards[0];
+      const card = sizes.has(first) ? { ...first, font_size: sizes.get(first) } : first;
+      await applyCard({ card, art: card.art ? new URL(card.art, location.href).href : null, guides: true });
+    } finally { preview.style.removeProperty("visibility"); }
   </script>
 </body>
 </html>

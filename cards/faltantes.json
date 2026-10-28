@@ -1,0 +1,71 @@
+{
+  "variables": {
+  },
+  "cards": [
+    {
+      "id": "01",
+      "quantity": 1,
+      "font_size": null,
+      "name": "Talia",
+      "archetype": "Estrela Mishelan",
+      "element": "caelo",
+      "cost": "1",
+      "atk": 0,
+      "hp": "2",
+      "art": "http://localhost:8000/faltantes/estrela_talia.png",
+      "effect": "(2-En): Viro esta unidade: Envio 1 Mishelan do meu deck ao Backstage.\n(1-En): Quando vou ao Backstage: Envio as 3 cartas do topo do meu deck ao Backstage (Único)."
+    },
+    {
+      "id": "02",
+      "quantity": 1,
+      "font_size": null,
+      "name": "Roadie",
+      "archetype": "LineWire",
+      "element": "hydro",
+      "cost": "1",
+      "atk": 0,
+      "hp": "2",
+      "art": "http://localhost:8000/faltantes/wire_roadie.png",
+      "effect": "(I-En): Adiciono 1 LiveWire do meu deck à minha mão.\nMe viro: Aplico Electro a uma unidade no campo e Hydro a uma unidade aliada.\nAo sofrer uma reação de Condução: Envio 1 LiveWire do meu deck ao Backstage. Se controlo apenas unidades Live Wire, ganho 1-En adicional (Único)."
+    },
+    {
+      "id": "03",
+      "quantity": 2,
+      "font_size": null,
+      "name": "Morgiana",
+      "archetype": "Bandida de Frutella",
+      "element": "pyro",
+      "cost": "8",
+      "atk": 0,
+      "hp": "3",
+      "art": "http://localhost:8000/faltantes/bandida_morgiana.png",
+      "effect": "Ao entrar: Aplico Pyro a uma unidade no campo. Depois, posso fazer Metamorfose de 1 Empregada de Frutella no campo.\n(2-En): Quando uma Bandida de Frutella destrói outra unidade no campo: Compro 1 carta (Único).\n(2-En): Quando uma Bandida de Frutella realiza uma reacao: Envio 1 Bandida de Frutella do meu deck ao Backstage (Único).\nAo sofrer uma reação: Faço Metamorfose [Mão/Backstage] e depois volto para a mão (Único)."
+    },
+    {
+      "id": "04",
+      "quantity": 1,
+      "font_size": null,
+      "name": "Marciera",
+      "archetype": "Bandida de Frutella",
+      "element": "pyro",
+      "cost": "8",
+      "atk": 0,
+      "hp": "3",
+      "art": "http://localhost:8000/faltantes/bandida_marciera.jpg",
+      "effect": "Ao entrar: Aplico Pyro a uma unidade no campo que já tenha um token Pyro. Depois, compro 1 carta.\n(2-En): Escolho 1 unidade no campo com um token Pyro, Removo a unidade escolhida.\n(2-En): Quando uma unidade com um token Pyro ativa um efeito: Aplico 1 token Pyro a essa unidade.\nAo sofrer uma reação: Faço Metamorfose [Mão/Backstage] e depois volto para a mão (Único)."
+    },
+    {
+      "id": "05",
+      "quantity": 1,
+      "font_size": null,
+      "name": "Milena",
+      "archetype": "Bandida de Frutella",
+      "element": "hydro",
+      "cost": "8",
+      "atk": 0,
+      "hp": "3",
+      "art": "http://localhost:8000/faltantes/bandida_milena.png",
+      "effect": "Ao entrar: Aplico Anemo a uma unidade no campo. Se realizo uma reação ao atacar: Me Desviro (Único).\n(3-En): Me Desviro.\nAo sofrer uma reação: Faço Metamorfose [Mão/Backstage] e depois volto para a mão (Único)."
+    }
+  ]
+}
