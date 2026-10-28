@@ -1,4 +1,5 @@
 // Executada no navegador; compartilhada pela prévia e pelo exportador.
+// Retorna a fonte final da descrição em mm, ou null se o template não tiver effect-text.
 export async function applyCard({ card, art, guides = false }) {
   const el = document.querySelector("card-data");
   if (!el) throw new Error("Template sem card-data");
@@ -111,4 +112,5 @@ export async function applyCard({ card, art, guides = false }) {
   fitText(hp, { max: 5.4, min: 1.5, mode: "width" });
   fitText(cost, { max: 9, min: 1.5 });
   await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  return effect ? parseFloat(effect.style.fontSize) : null;
 }

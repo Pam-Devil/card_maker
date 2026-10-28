@@ -1,4 +1,4 @@
-import { evaluateExpression, integer } from "./expressions.mjs";
+import { evaluateExpression, integer, numericValue } from "./expressions.mjs";
 import { compileVariables, isAutoFontGroup, setFontGroup } from "./conditional-variables.mjs";
 
 export const ELEMENTS = ["pyro", "hydro", "electro", "anemo", "cryo", "dendro", "geo", "abysso", "caelo"];
@@ -66,7 +66,7 @@ function expandCard(card, variables, compiled) {
   function field(name) {
     return cached(`card.${name}`, () => {
       const result = expand(card[name]);
-      return name === "hp" ? integer(result) : result;
+      return name === "hp" ? integer(numericValue(result)) : result;
     });
   }
   function resolve(name, preserveDecimals = false) {

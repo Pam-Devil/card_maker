@@ -1,5 +1,12 @@
 const FUNCTIONS = Object.freeze({ trunc: Math.trunc, floor: Math.floor, ceil: Math.ceil, round: Math.round });
 
+// Converte apenas texto decimal finito; evita coerções como null -> 0 e "" -> 0.
+export function numericValue(value) {
+  if (typeof value !== "string" || !/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/.test(value.trim())) return value;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : value;
+}
+
 export function integer(value) {
   if (typeof value !== "number") return value;
   if (!Number.isFinite(value)) throw new Error("O cálculo deve retornar um número finito (verifique divisões por zero)");
@@ -28,6 +35,7 @@ export function evaluateExpression(source, resolve, { preserveDecimals = false }
     if (take() !== token) throw new Error(`Esperado "${token}" na expressão: ${source}`);
   }
   function number(value) {
+    value = numericValue(value);
     if (typeof value !== "number" || !Number.isFinite(value)) throw new Error(`Cálculo exige números finitos: ${source}`);
     return value;
   }

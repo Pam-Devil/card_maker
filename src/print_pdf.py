@@ -19,7 +19,7 @@ def layout(items, margin, gap, columns=None):
     col_w = max(item["width"] for item in items) * mm
     available = math.floor((area_w + gap + 1e-7) / (col_w + gap))
     if columns is not None and available < columns:
-        raise ValueError("A margem e o espaçamento não permitem três colunas de texto em A4")
+        raise ValueError(f"A margem e o espaçamento não permitem {columns} coluna(s) em A4")
     columns = columns or available
     if columns < 1:
         raise ValueError("A carta não cabe na largura útil da página A4")

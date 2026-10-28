@@ -8,6 +8,7 @@ import { validateCard, slug, parseDeck } from "./cards.mjs";
 import { renderCard, renderText, renderBgText, cardHtml, resolveCardFontGroups } from "./render.mjs";
 import { exportPng, MM } from "./export.mjs";
 import { createPrintPdfs } from "./pdf.mjs";
+import { CSS_DPI, pxToMm } from "./units.mjs";
 
 export const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -38,7 +39,7 @@ export async function build(args) {
   const foundIds = new Set();
   try {
     browser = await chromium.launch();
-    const context = await browser.newContext({ viewport: { width: 500, height: 600 }, deviceScaleFactor: args.dpi / 96 });
+    const context = await browser.newContext({ viewport: { width: 500, height: 600 }, deviceScaleFactor: args.dpi / CSS_DPI });
     const page = await context.newPage();
     page.on("console", message => { if (message.type() === "warning") console.warn(`  ⚠ ${message.text()}`); });
     const baseUrl = `http://127.0.0.1:${server.address().port}`;
@@ -64,10 +65,11 @@ export async function build(args) {
           const groupFont = groupFonts.get(card);
           const renderData = groupFont === undefined ? card : { ...card, font_size: groupFont };
           const png = await renderCard(page, baseUrl, templateName, renderData, args);
-          const fontSize = await page.evaluate(() => {
+          const fontPixels = await page.evaluate(() => {
             const effect = document.querySelector(".card-bleed effect-text");
-            return effect ? parseFloat(getComputedStyle(effect).fontSize) * 25.4 / 96 : null;
+            return effect ? parseFloat(getComputedStyle(effect).fontSize) : null;
           });
+          const fontSize = fontPixels == null ? null : pxToMm(fontPixels);
           const text = args.text || args.pdfText ? await renderText(page, args) : null;
           const bgText = args.bgText ? await renderBgText(page, args) : null;
           const filename = `${name}_${mode}_${args.dpi}dpi.png`;
