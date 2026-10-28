@@ -34,6 +34,7 @@ export async function build(args) {
   let browser;
   let count = 0, failed = 0;
   const names = new Set();
+  const sourceNames = new Set();
   const entries = [];
   const selectedIds = args.ids ? new Set(args.ids.map(String)) : null;
   const foundIds = new Set();
@@ -45,6 +46,14 @@ export async function build(args) {
     const baseUrl = `http://127.0.0.1:${server.address().port}`;
     console.log(`DPI ${args.dpi} | ${mode}: ${args.trim ? MM.trimW : MM.bleedW} × ${args.trim ? MM.trimH : MM.bleedH} mm`);
     for (const file of args.files) {
+      // Cada JSON tem seu próprio espaço de nomes quando há vários arquivos.
+      let prefix = "";
+      if (args.files.length > 1) {
+        const stem = slug(path.parse(file).name) || "deck";
+        prefix = stem;
+        for (let suffix = 2; sourceNames.has(prefix); suffix++) prefix = `${stem}-${suffix}`;
+        sourceNames.add(prefix);
+      }
       const raw = JSON.parse(await fs.readFile(path.resolve(ROOT, file), "utf8"));
       const cards = parseDeck(raw);
       const groupFonts = await resolveCardFontGroups(context, baseUrl, templateName, cards, selectedIds);
@@ -57,8 +66,9 @@ export async function build(args) {
         let label = `#${index + 1}`;
         try {
           label = validateCard(card, index);
-          const name = slug(card.id ?? card.name ?? `card-${index + 1}`);
-          if (!name) throw new Error(`[${label}] nome de arquivo vazio`);
+          const cardName = slug(card.id ?? card.name ?? `card-${index + 1}`);
+          if (!cardName) throw new Error(`[${label}] nome de arquivo vazio`);
+          const name = prefix ? `${prefix}_${cardName}` : cardName;
           if (names.has(name)) throw new Error(`[${label}] nome de saída duplicado: ${name}`);
           names.add(name);
           await artServers.ensure(card.art);

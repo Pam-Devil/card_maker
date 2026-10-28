@@ -39,7 +39,7 @@ test("exporta só os IDs pedidos de vários JSONs, incluindo o texto separado", 
   const { stdout } = await generate(files, "01,3", ["--text", "--rounded"]);
   expect(stdout).toContain("2 carta(s) gerada(s), 0 com erro");
   expect(await outputFiles(files.directory, ".png")).toEqual([
-    "text/01_text_trim_300dpi.png", "text/3_text_trim_300dpi.png", "trim/01_trim_300dpi.png", "trim/3_trim_300dpi.png",
+    "text/first_01_text_trim_300dpi.png", "text/second_3_text_trim_300dpi.png", "trim/first_01_trim_300dpi.png", "trim/second_3_trim_300dpi.png",
   ]);
 });
 
@@ -58,5 +58,5 @@ test("informa IDs ausentes mesmo quando outros IDs foram encontrados", async ({}
   try { await generate(files, "01,missing"); } catch (caught) { error = caught; }
   expect(error?.code).toBe(1);
   expect(error?.stderr).toContain("IDs não encontrados nos JSONs: missing");
-  expect(await outputFiles(files.directory, ".png")).toEqual(["trim/01_trim_300dpi.png"]);
+  expect(await outputFiles(files.directory, ".png")).toEqual(["trim/first_01_trim_300dpi.png"]);
 });

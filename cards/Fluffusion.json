@@ -2,8 +2,8 @@
   "variables": {
     "quantity": {
       "cases": [
-        { "ids": "01-05", "value": 1 },
-        { "ids": "06-10", "value": 1 },
+        { "ids": "01-05", "value": 3 },
+        { "ids": "06-10", "value": 2 },
         { "ids": "11-15", "value": 1 }
       ]
     },
